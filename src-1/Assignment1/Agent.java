@@ -89,6 +89,15 @@ public class Agent {
 		}
 	}
 
+	public void halfHand(){
+		int discardAmount = getHandSize()/2;
+
+		for(int i = 0; i < discardAmount; i++){
+			Resources r = getRandomResourceFromHand();
+			removeOneResource(r);
+		}
+	}
+
 	/** True if agent can pay for a settlement (1 lumber, 1 brick, 1 wheat, 1 wool). */
 	public boolean canAffordSettlement() {
 		return countResource(Resources.LUMBER) >= 1 && countResource(Resources.BRICK) >= 1

@@ -88,7 +88,7 @@ public class GamePlay {
             if (buildAction != null) {
                 action = buildAction;
             } else {
-                discardDownToSeven(agent);
+                discardHalfOfHand(agent);
                 action = "Discarded down to 7 (no valid build)";
             }
         }
@@ -284,23 +284,10 @@ public class GamePlay {
         return maxChild;
     }
 
-    /** When hand > 7 and no build is possible, discard randomly until hand size is 7 (so mix can change over time). */
-    private void discardDownToSeven(Agent agent) {
-        while (agent.getHandSize() > 7) {
-            Resources r = agent.getRandomResourceFromHand();
-            if (r != null) agent.removeResource(r);
-        }
-    }
-
     private void handleSevenRoll() {
         for (Agent a : agents) {
-            int handSize = a.getHandSize();
-            if (handSize > 7) {
-                int discardCount = handSize / 2; 
-                for (int i = 0; i < discardCount; i++) {
-                    Resources r = a.getRandomResourceFromHand();
-                    a.removeResource(r);
-                }
+            if (a.getHandSize() > 7) {
+                a.halfHand();
             }
         }
     }
