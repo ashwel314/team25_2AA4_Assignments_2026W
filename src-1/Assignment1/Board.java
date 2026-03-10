@@ -67,15 +67,24 @@ public class Board {
 	}
 
 	public void placeCity(Node node, Building city, Agent agent) {
-    	nodeBuildings.put(node, city);
+		nodeBuildings.put(node, city);
+	}
+
+	/** Place a road on an edge (for R1.6: must be connected to existing road/settlement). */
+	public void placeRoad(Edge edge, Road road) {
+		edgeRoads.put(edge, road);
 	}
 
 	public Map<Edge, Road> getEdgeRoads() {
-    	return edgeRoads;
+		return edgeRoads;
 	}
 
 	public List<Tile> getTiles() {
 		return tiles;
+	}
+
+	public List<Edge> getEdges() {
+		return edges;
 	}
 
 	public List<Node> getNodes() {

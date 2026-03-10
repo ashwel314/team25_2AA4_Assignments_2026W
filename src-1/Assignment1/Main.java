@@ -28,50 +28,27 @@ public class Main {
         agents.add(new Agent(0, "Agent_Gamma"));
         agents.add(new Agent(0, "Agent_Delta"));
 
-        // 3. Setup the Board Infrastructure (Requirement R1.1)
-        // These lists represent the hard-wired map pieces (19 Tiles, 54 Nodes, 72 Edges).
-        List<Tile> tiles = new ArrayList<>();
-        List<Edge> edges = new ArrayList<>();
-        List<Node> nodes = new ArrayList<>();
+        // 3. Setup the Board (Requirement R1.1) – 19 tiles, 54 nodes, 72 edges per spec
+        Board catanBoard = MapSetup.createBoard();
 
-        // Create 2 Nodes (Inter sections)
-        Node n0 = new Node(0);
-        Node n1 = new Node(1);
-        Node n2 = new Node(2);
-
-        nodes.add(n0);
-        nodes.add(n1);
-        nodes.add(n2);
-
-        // Create an Edge (Road spot) connecting them
-        Edge e0 = new Edge(n0, n1);
-        Edge e1 = new Edge(n1, n2);
-
-        edges.add(e0);
-        edges.add(e1);
-
-        // Register edges with nodes (CRITICAL for adjacency rules)
-        n0.addEdge(e0);
-        n1.addEdge(e0);
-        n1.addEdge(e1);
-        n2.addEdge(e1);
-
-        // Create a Tile touching both edges
-        List<Edge> tileEdges = new ArrayList<>();
-        tileEdges.add(e0);
-        tileEdges.add(e1);
-
-        Tile wheatTile = new Tile(Resources.WHEAT, 10, 0, tileEdges);
-        tiles.add(wheatTile);
-
-        // Initialize the Board with the map components
-        Board catanBoard = new Board(tiles, edges, nodes);
-
-        // 4. Give Agents starting buildings so they can earn resources
-        // Place a settlement for Agent_Alpha on Node n1
-        catanBoard.placeSettlement(n1, new Settlement(agents.get(0), n0));
-        catanBoard.placeSettlement(n2, new Settlement(agents.get(1), n2));
-        System.out.println("Initial settlements placed.");
+        // 4. Place one initial settlement per agent (distance ≥ 2 between players)
+        // Nodes 0, 15, 28, 43 are pairwise non-adjacent so they satisfy the distance rule.
+        catanBoard.placeSettlement(catanBoard.getNode(0), new Settlement(agents.get(0), catanBoard.getNode(0)));
+        agents.get(0).addVictoryPoints(1);
+        catanBoard.placeSettlement(catanBoard.getNode(15), new Settlement(agents.get(1), catanBoard.getNode(15)));
+        agents.get(1).addVictoryPoints(1);
+        catanBoard.placeSettlement(catanBoard.getNode(28), new Settlement(agents.get(2), catanBoard.getNode(28)));
+        agents.get(2).addVictoryPoints(1);
+        catanBoard.placeSettlement(catanBoard.getNode(43), new Settlement(agents.get(3), catanBoard.getNode(43)));
+        agents.get(3).addVictoryPoints(1);
+        // Give each agent a small starting hand so they can build once they exceed 7 cards (avoids being stuck with only one resource type)
+        for (Agent a : agents) {
+            a.addResource(Resources.LUMBER);
+            a.addResource(Resources.BRICK);
+            a.addResource(Resources.WHEAT);
+            a.addResource(Resources.WOOL);
+        }
+        System.out.println("Initial settlements placed (nodes 0, 15, 28, 43).");
 
         // 5. Initialize the GamePlay Controller
         int maxRounds = 8192;

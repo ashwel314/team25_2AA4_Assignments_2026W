@@ -50,20 +50,82 @@ public class Agent {
 	 */
 	public int getVictoryPoints() {
 		return victoryPoints;
-
 	}
-	
+
+	/** Add victory points (e.g. building, longest road). Use negative to remove (e.g. losing longest road). */
+	public void addVictoryPoints(int points) {
+		this.victoryPoints = Math.max(0, this.victoryPoints + points);
+	}
+
 	public String getName() {
 		return name;
 	}
 
 	public int getHandSize() {
-    	return hand.size();
+		return hand.size();
 	}
 
 	public Resources getRandomResourceFromHand() {
-    	if (hand.isEmpty()) return null;
-    	return hand.get(new Random().nextInt(hand.size()));
+		if (hand.isEmpty()) return null;
+		return hand.get(new Random().nextInt(hand.size()));
+	}
+
+	/** Count how many of a given resource the agent has. */
+	public int countResource(Resources r) {
+		int count = 0;
+		for (Resources card : hand) {
+			if (card == r) count++;
+		}
+		return count;
+	}
+
+	/** Remove one card of the given resource (caller must ensure agent has it). */
+	public void removeOneResource(Resources r) {
+		for (int i = 0; i < hand.size(); i++) {
+			if (hand.get(i) == r) {
+				hand.remove(i);
+				return;
+			}
+		}
+	}
+
+	/** True if agent can pay for a settlement (1 lumber, 1 brick, 1 wheat, 1 wool). */
+	public boolean canAffordSettlement() {
+		return countResource(Resources.LUMBER) >= 1 && countResource(Resources.BRICK) >= 1
+				&& countResource(Resources.WHEAT) >= 1 && countResource(Resources.WOOL) >= 1;
+	}
+
+	/** True if agent can pay for a city (2 wheat, 3 ore). */
+	public boolean canAffordCity() {
+		return countResource(Resources.WHEAT) >= 2 && countResource(Resources.ORE) >= 3;
+	}
+
+	/** True if agent can pay for a road (1 lumber, 1 brick). */
+	public boolean canAffordRoad() {
+		return countResource(Resources.LUMBER) >= 1 && countResource(Resources.BRICK) >= 1;
+	}
+
+	/** Deduct settlement cost: 1 lumber, 1 brick, 1 wheat, 1 wool. */
+	public void deductSettlementCost() {
+		removeOneResource(Resources.LUMBER);
+		removeOneResource(Resources.BRICK);
+		removeOneResource(Resources.WHEAT);
+		removeOneResource(Resources.WOOL);
+	}
+
+	/** Deduct city cost: 2 wheat, 3 ore. */
+	public void deductCityCost() {
+		removeOneResource(Resources.WHEAT);
+		removeOneResource(Resources.WHEAT);
+		removeOneResource(Resources.ORE);
+		removeOneResource(Resources.ORE);
+		removeOneResource(Resources.ORE);
+	}
+
+	/** Deduct road cost: 1 lumber, 1 brick. */
+	public void deductRoadCost() {
+		removeOneResource(Resources.LUMBER);
+		removeOneResource(Resources.BRICK);
 	}
 
 }
