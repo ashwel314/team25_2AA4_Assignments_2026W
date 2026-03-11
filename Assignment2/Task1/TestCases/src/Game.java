@@ -147,7 +147,7 @@ public class Game {
         System.out.println("\n=== GAME OVER after " + round + " round(s) ===");
         Agent winner = agents[0];
         for (Agent a : agents) {
-            if (a.getTotalPoints() > winner.getTotalPoints()) winner = a;
+            if (a.getTotalPoints() > winner.getTotalPoints()) winner = a; // add the tie condition as well 
             System.out.println("  Agent " + a.getId() + ": " + a.getTotalPoints() + " VP");
         }
         System.out.println("Winner: Agent " + winner.getId()

@@ -15,12 +15,6 @@ public class City extends Building {
     private int resourceMultiplier;
 
     /**
-     * The resource produced additionally by this city's position.
-     * Stored for reference; actual distribution handled by GameMap.
-     */
-    private Resources resource;
-
-    /**
      * Constructor for City.
      * @param owner    the Agent who owns this city
      * @param location the Node where this city is placed (replacing a settlement)
