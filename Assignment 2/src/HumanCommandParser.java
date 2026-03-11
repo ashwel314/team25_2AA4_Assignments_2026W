@@ -3,92 +3,98 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Handles the parsing of huma player commands from the 
- * command line. Fulfills Requirement R2.1 using Regular 
- * Expressions for command validation. Developed for Assignment-2
-*/
-
+ * Handles Regex-based command parsing for Human players.
+ * Fulfills Requirement R2.1 and R2.4 for Assignment 2.
+ * This class serves as the interface between the user's text input
+ * and the formal game logic in the GameMap and Agent classes.
+ */
 public class HumanCommandParser {
     
     private final Scanner scanner;
-
-    /**
-     * Initializes the parser with a standard system input scanner.
-    */
-    public Scanner getScanner(){
-        return scanner;
-    }
-
+    
     public HumanCommandParser(){
         this.scanner = new Scanner(System.in);
     }
 
     /**
-     * Entry point for a human player's turn. Continues to prompt
-     * until 'Go' is entered.
-     * @param agent   The humman agent currently acting. 
-     *  @param map    The game board for validating and exxecuting moves.
+     * Requirement R2.1 & R2.4: The "Turn Loop" for a human player.
+     * Continues until the 'go' command (State transition to End turn) is received.
+     * @param agent  The humman agent. 
+     * @param map    The game board for validating and executing moves.
     */
     public void handleTurn(Agent agent, GameMap map){
-        System.out.println("\n--- Human Turn: Agent " + agent.getId() + " ---");
-        System.out.println("Commands: Roll, List, Build [settlement|city|road], Go");
-
-        boolean turnComplete = false;
-        while(!turnComplete) {
-            System.out.print("> ");
+        boolean turnOver = false;
+        System.out.println("\n[Human Turn - Agent " + agent.getId() + "]");
+        System.out.println("Available commands: 'roll', 'build settlement [id]', 'build road [id]', 'list', 'go'");
+        
+        while (!turnOver) {
+            System.out.print("Agent " + agent.getId() + " > ");
             String input = scanner.nextLine().trim();
-            turnComplete = parseCommand(input, agent, map);
+
+            // R2.1 Regex-based branching for command recognition
+            if (input.matches("(?i)^roll$")) {
+                // In R2.4, the Game loop rolls for the player, so we just acknowledge it here.
+                System.out.println("Dice have already been cast for this turn.");
+            } 
+            else if (input.matches("(?i)^go$")) {
+                // Task 2 Automaton: Transition from Main Phase to End Turn
+                turnOver = true; 
+                System.out.println("Ending turn...");
+            } 
+            else if (input.matches("(?i)^list$")) {
+                // Helper command to show hand state
+                System.out.println("Your Resources: " + agent.getResourceMap());
+                System.out.println("Victory Points: " + agent.getTotalPoints());
+            } 
+            else if (input.matches("(?i)^build\\s+settlement\\s+(\\d+)$")) {
+                processBuildSettlement(input, agent, map);
+            } 
+            else if (input.matches("(?i)^build\\s+road\\s+(\\d+)$")) {
+                processBuildRoad(input, agent, map);
+            }
+            else {
+                // Error handling for R2.1
+                System.out.println("Syntax Error: Command not recognized. Use 'build settlement [id]' or 'go'.");
+            }
         }
     } 
 
     /**
-     * Uses Regular Expressions to identify and execute human commands.
-     * @return true if the 'Go' command is received, ending the turn.
-    */
-   private boolean parseCommand(String input, Agent agent, GameMap map){
-       //Regex Definitions
-       if(input.matches("(?i)^roll$")){
-          System.out.println("Dice rolled via command.");
-          return false; 
-       } else if (input.matches("(?i)^go$")) {
-           return true;
-       } else if (input.matches("(?i)^list$")){
-           System.out.println("Current Hand: " + agent.getResourceMap());
-           return false;
-       }
-       //Build Settlement: build settlement [nodeId]
-       else if (input.matches("(?i)^build\\s+settlement\\s+(\\d+)$")) {
-           executeBuild(input, agent, map, "settlement");
-           return false;           
-       }
-       //Build Child: build city [nodeId]
-       else if (input.matches("(?i)^build\\s+city\\s+(\\d+)$")) {
-           executeBuild(input, agent, map, "city");
-           return false;           
-       }
-       //Build Road: build road [nodeA, nodeB]
-       else if (input.matches("(?i)^build\\s+road\\s+(\\d+),\\s*(\\d+)$")) {
-           executeBuild(input, agent, map, "road");
-           return false;           
-       }
+     * Parses the node ID from the command and executes the build logic.
+     */
+    private void processBuildSettlement(String input, Agent agent, GameMap map) {
+        Pattern p = Pattern.compile("(\\d+)");
+        Matcher m = p.matcher(input);
+        if (m.find()) {
+            int nodeId = Integer.parseInt(m.group(1));
+            
+            // Check game logic (Semantic Correctness)
+            if (map.validSettlementNodes(agent, false).contains(nodeId)) {
+                map.placeSettlement(agent, nodeId);
+                System.out.println("Success: Settlement built on node " + nodeId);
+            } else {
+                System.out.println("Game Error: Cannot build settlement on node " + nodeId + ". Check resources or distance rule.");
+            }
+        }
+    }
 
-       System.out.println("Invalid command or format. Try again.");
-       return false;
-   }
+    /**
+     * Parses the edge ID from the command and executes the road logic.
+     */
+    private void processBuildRoad(String input, Agent agent, GameMap map) {
+        Pattern p = Pattern.compile("(\\d+)");
+        Matcher m = p.matcher(input);
+        if (m.find()) {
+            int edgeId = Integer.parseInt(m.group(1));
+            
+            if (map.validRoadEdges(agent).contains(edgeId)) {
+                map.placeRoad(agent, edgeId);
+                System.out.println("Success: Road built on edge " + edgeId);
+            } else {
+                System.out.println("Game Error: Illegal road placement on edge " + edgeId);
+            }
+        }
+    }
+    
 
-   private void executeBuild(String input, Agent agent, GameMap map, String type){
-       Pattern pattern = Pattern.compile("(\\d+)");
-       Matcher matcher = pattern.matcher(input);
-
-       if(type.equals("road")){
-           //Logic for road build with two node inputs
-           System.out.println("Processing road build..."); 
-       }else {
-           if(matcher.find()){
-            int nodeId = Integer.parseInt(matcher.group(1));
-            boolean success = type.equals("settlement") ? agent.buildSettlement(map) : agent.buildCity(map);
-            System.out.println(type + "build on node " + nodeId + (success ? " successful." : " failed."));
-           } 
-       }
-   }
 } //ends class 
