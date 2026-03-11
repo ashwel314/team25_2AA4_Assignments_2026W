@@ -1,10 +1,13 @@
-# Catan Simulation Engine
+# Catan Simulation Engine: Phase 2
 **team25_2AA4_Assignments-2026W** </br>
 **Course:** SFWRENG 2AA4  </br>
-**Project:** Assignment 1 - System Architecture & Implementation </br>
+**Project:** Assignment 2 - human-in-the-Loop & Design Evolution </br>
 
 ## Project Overview
 This project is a discrete-event simulator for the board game **Settlers of Catan**. The system models a 19-tile hexagonal grid, four autonomous agents, and a resource distribution engine. The simulation runs for a maximum of 8,192 rounds or until an agent achieves 10 victory points.
+
+In Phase 2, this project evolves the Assignment 1 discrete-event simulator into an interactive game engine. It introduces a Human Player interface, a Step-Forward mechanism for synchronized visualization, and a refactored Object-Oriented Architecture to support polymorphic agent behavior.
+
 
 ## Game Rules Implementation
 The simulation strictly adheres to the core Catan mechanics as specified in the project requirements:
@@ -28,13 +31,22 @@ The simulation strictly adheres to the core Catan mechanics as specified in the 
 * **Cities**: Worth 2 Victory Points.
 * **Winning**: The simulation terminates immediately when any agent reaches 10 Victory Points or the 8,192 round limit is hit.
 
-### Resource Production & Distribution
-The simulation uses a "Tile-to-Node" navigation strategy:
-1. The `Dice` roll a value between 2 and 12.
-2. `GamePlay` iterates through the `Board` to find all `Tiles` matching that roll value.
-3. Each active `Tile` queries its `AdjacentNodes()` to find surrounding intersections.
-4. The `Board` checks if those nodes contain a `Building`. If so, it identifies the `Agent` (owner) and distributes the appropriate resource type.
+## Assignment 2 Evolutions
+The system has been extended to meet the following new requirements:
 
+### 1. Human-in-the-Loop
+* **Regex Command Parser**: A dedicated parser handles manual input for the human player (Agent 0).
+* **Supported Commands**: Commands include `roll`, `build settlement [id]`, `build road [id]`, `list`, and `go`.
+* **Input Validation**: The parser performs both syntactic (regex matching) and semantic (game rule validation) checks.
+
+### 2. Design Refactoring 
+* **Polymorphism**: The `Agent` class is now an **Abstract Base Class**, replacing the previous boolean-flag-based design.
+* **Subclass Specialization**: `HumanAgent` and `ComputerAgent` extend the base class to provide distinct turn-taking logic while sharing resource management code.
+* **Open-Closed Principle**: The new architecture allows for adding new AI types or player types without modifying the core `Game` loop.
+
+### 3. Step-Forward & Visualization 
+* **Execution Control**: The simulation includes a "Step-Forward" mechanism where the game pauses until the user inputs `go`.
+* **State Export**: After every action, the system exports a `game_state.json` file to sync with the external Python visualizer.
 ---
 
 ## How to Run
