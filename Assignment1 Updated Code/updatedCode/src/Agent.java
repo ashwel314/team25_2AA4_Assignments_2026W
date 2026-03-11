@@ -233,7 +233,6 @@ public class Agent {
     /**
      * Removes the given amount of a resource from this agent's hand.
      * @param resource the resource type
-     * @param amount   how many to remove
      */
     public void removeResource(Resources resource) {
             hand.remove(resource);
@@ -245,7 +244,9 @@ public class Agent {
      */
     private void payResources(Map<Resources, Integer> cost) {
         for (Map.Entry<Resources, Integer> entry : cost.entrySet()) {
-            removeResource(entry.getKey(), entry.getValue());
+            for(int i = 0; i < entry.getValue(); i++){
+                removeResource(entry.getKey());
+            }
         }
     }
 
@@ -270,10 +271,10 @@ public class Agent {
      */
     public Resources getRandomResource(){
         if(handSize() == 0){
-            return null
+            return null;
         }
 
-        return hand.get(new Random().nextInt(handSize()))
+        return hand.get(new Random().nextInt(handSize()));
     }
 
     /**

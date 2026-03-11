@@ -25,11 +25,15 @@ public class Robber {
     public void stealResource(Agent stealer, Agent victim){
         Random rand = new Random();
 
-        Resources r = victim.getRandomResourceFromHand(); //
-        stealer.addResource(r);
-        System.out.println(stealer.getName() + " stole from " + victim.getName());
+        Resources r = victim.getRandomResource();
+        stealer.addResource(r, 1);
     }
 
+    /**
+     * checks to see if the tile is blocked by the robber
+     * @param tile the tile to be compared
+     * @return true if blocked, false if not blocked
+     */
     public boolean blockResource(Tile tile){
         return this.location == tile;
     }
