@@ -1,44 +1,37 @@
-import java.io.FileReader;
 import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
+import java.util.Scanner;
 
 /**
  * Top-level game controller for the Catan simulator.
+ * Updated for Assignment 2 to support Human-in-the-loop gameplay.
  *
  * Manages the full game loop including:
  *   - Initial placement phase (R1.1, R1.6)
  *   - Round-by-round simulation (R1.3, R1.4)
  *   - Termination when 10 VP reached or max rounds elapsed (R1.4, R1.5)
  *   - Console output in the specified format (R1.7)
- *
- * Output format per spec: [RoundNumber] / [PlayerID]: [Action]
  */
 public class Game {
 
-    // ---------------------------------------------------------------
     // Constants
-    // ---------------------------------------------------------------
     public static final int WIN_VP       = 10;
     public static final int MAX_ROUNDS   = 8192;
     public static final int NUM_AGENTS   = 4;
 
-    // ---------------------------------------------------------------
     // Fields
-    // ---------------------------------------------------------------
     private GameMap  map;
     private Agent[]  agents;
     private int      round;
     private int      maxRounds;
     private MultiDice dice;
-
-    // ---------------------------------------------------------------
-    // Constructor
-    // ---------------------------------------------------------------
+    private HumanCommandParser humanParser; //Member 3: Added for R2.1
 
     /**
-     * Creates a new Game.
+     * Creates a new Game instance. 
      * @param map       the fully initialised game map
-     * @param agents    the 4 agents
+     * @param agents    the 4 agents (at least one should be human)
      * @param maxRounds maximum rounds to simulate (from config, R1.4)
      */
     public Game(GameMap map, Agent[] agents, int maxRounds) {
@@ -46,35 +39,42 @@ public class Game {
         this.agents    = agents;
         this.round     = 0;
         this.maxRounds = Math.min(maxRounds, MAX_ROUNDS);
+        this.humanParser = new HumanCommandParser(); //Added for R2.1
 
-        // Compose two 6-sided dice using the composition pattern
+        // Dice composition pattern (Fixes Assignment 1 Feedback) 
         this.dice = new MultiDice();
         this.dice.addDice(new RegularDice(6));
         this.dice.addDice(new RegularDice(6));
     }
 
-    // ---------------------------------------------------------------
-    // Game flow
-    // ---------------------------------------------------------------
 
     /**
      * Runs the initial placement phase.
-     * Each agent places one settlement + one road in order, then in reverse
-     * order (standard Catan snake draft), per R1.3.
+     * Supports both AI and Human placement.
      */
     public void initialRound() {
         System.out.println("=== INITIAL PLACEMENT ===");
         // Forward pass
         for (Agent agent : agents) {
-            String action = agent.initialPlacement(map);
-            System.out.println("SETUP / " + agent.getId() + ": " + action);
+            handlePlacement(agent);
         }
         // Reverse pass (snake draft)
         for (int i = agents.length - 1; i >= 0; i--) {
-            String action = agents[i].initialPlacement(map);
-            System.out.println("SETUP / " + agents[i].getId() + ": " + action);
+            handlePlacement(agents[i]);
         }
         System.out.println("=== GAME START ===");
+    }
+
+    private void handlePlacement(Agent agent){
+        if(agent.isComputer()){
+            String action = agent.initialPlacement(map);
+            System.out.println("SETUP / " + agent.getId() + ": " + action);
+        } else{
+            //R2.1 Call your parser for the human's setup turn
+            humanParser.handleTurn(agent, map);
+        }
+        //R2.3 Update state after every placement for the visualizer
+        GameStateExporter.export(map, agents, "game_state.json");
     }
 
     /**
@@ -83,24 +83,44 @@ public class Game {
      * Per R1.7, each agent action is printed as: [RoundNumber] / [PlayerID]: [Action]
      * Victory points are printed once at the end of the round.
      */
+    //This method has been updated for Assignment 2
     public void runRound() {
         round++;
         for (Agent agent : agents) {
-            // 1. Roll dice
-            int roll = dice.roll();
-
-            // 2. Distribute resources to all agents based on roll
-            map.distributeResources(roll, agents);
-
-            // 3. Agent takes their action
-            String action = agent.takeTurn(map, round);
-
-            // 4. Print in exact spec format: [RoundNumber] / [PlayerID]: [Action]
-            System.out.println(round + " / " + agent.getId() + ": " + action);
+            //Step-Forward mechanism
+            if (agent.isComputer()){
+                System.out.println("\n[PAUSED] Type 'go' to see Agent " + agent.getId() + "'s turn.");
+                waitForGoCommand();
+                
+                int roll = dice.roll();
+                map.distributeResources(roll, agents);
+                String action = agent.takeTurn(map, round);
+                System.out.println(round + " / " + agent.getId() + ": " + action);
+            }else{
+                // R2.1: Human Player Turn
+                int roll = dice.roll();
+                System.out.println("\n" + round + " / " + agent.getId() + ": Rolled a " + roll);
+                map.distributeResources(roll, agents);
+                humanParser.handleTurn(agent, map);
+            }
+            //R2.3: Export state after every individual turn
+            GameStateExporter.export(map, agents, "game_state.json");
         }
-
-        // Print VP summary once at end of round (R1.7)
         printVictoryPoints();
+    }
+
+    /**
+     * Requirements R2.4: Blocks execution until "go" is enetered.
+    */
+    private void waitForGoCommand() {
+        Scanner sc = new Scanner(System.in);
+        while(true){
+            String input = sc.nextLine().trim();
+            if(input.equalsIgnoreCase("go")){
+                break;
+            }
+            System.out.println("Invalid command. Type 'go' to step forward.");
+        }
     }
 
     /**
@@ -150,8 +170,7 @@ public class Game {
             if (a.getTotalPoints() > winner.getTotalPoints()) winner = a;
             System.out.println("  Agent " + a.getId() + ": " + a.getTotalPoints() + " VP");
         }
-        System.out.println("Winner: Agent " + winner.getId()
-                + " with " + winner.getTotalPoints() + " VP");
+        System.out.println("Winner: Agent " + winner.getId() + " with " + winner.getTotalPoints() + " VP");
     }
 
     // ---------------------------------------------------------------
@@ -180,11 +199,4 @@ public class Game {
         return MAX_ROUNDS;
     }
 
-    // ---------------------------------------------------------------
-    // Accessors
-    // ---------------------------------------------------------------
-
-    public int     getRound()     { return round; }
-    public GameMap getMap()       { return map; }
-    public Agent[] getAgents()    { return agents; }
-}
+} //ends class Game

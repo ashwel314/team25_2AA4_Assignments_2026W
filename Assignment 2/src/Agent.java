@@ -64,6 +64,10 @@ public class Agent {
     /** Shared random number generator for random agent behaviour (R1.2). */
     private Random random;
 
+    /*Flag to determine if this agent is a computer or a human. If false, the
+     Game controller will prompt for manual command-line input. */
+    private boolean isComputer;
+
     // ---------------------------------------------------------------
     // Constructor
     // ---------------------------------------------------------------
@@ -71,11 +75,13 @@ public class Agent {
     /**
      * Constructor for Agent.
      * @param id     unique agent ID
-     * @param points starting victory points (normally 0)
+     * @param points starting points
+     * @param isComputer  True for AI, False for Human player.
      */
-    public Agent(int id, int points) {
+    public Agent(int id, int points, boolean isComputer) {
         this.id                 = id;
         this.totalPoints        = points;
+        this.isComputer = isComputer;
         this.roadsRemaining     = 15;
         this.settlementsRemaining = 5;
         this.citiesRemaining    = 4;
@@ -89,6 +95,14 @@ public class Agent {
     // ---------------------------------------------------------------
     // Turn logic
     // ---------------------------------------------------------------
+
+    /**
+     * R2.4: Getter used by game.java to decide when to pause for 'go'.
+     * @return true if the agent is a computer agent.
+    */
+   public boolean isComputer(){
+       return isComputer;
+   }
 
     /**
      * Executes this agent's turn on the given map.

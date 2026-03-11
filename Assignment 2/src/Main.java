@@ -10,26 +10,24 @@
 public class Main {
 
     public static void main(String[] args) {
-
-        // --- Read config (turns: int [1-8192]) ---
-        String configPath = "config.txt";
-        int maxRounds = 100;
-        System.out.println("Catan Simulator starting. Max rounds: " + maxRounds);
-        System.out.println("Game ends when a player reaches 10 VP or rounds are exhausted.\n");
-
-        // --- Build board (hard-wired layout per spec) ---
+        // --- Setup Map ---
         GameMap map = new GameMap();
 
-        // --- Create 4 randomly-acting agents ---
+        // --- Create Agents (R2.1) ---
+        //One human player (Agent 0) and three computer agents (Agents 1-3)
         Agent[] agents = new Agent[]{
-                new Agent(0, 0),
-                new Agent(1, 0),
-                new Agent(2, 0),
-                new Agent(3, 0)
+                new Agent(0, 0, false), //Human Player
+                new Agent(1, 0, true), //Computer
+                new Agent(2, 0, true), //Computer
+                new Agent(3, 0, true) //Computer
         };
 
-        // --- Run game ---
+        // --- Configuration and Execution ---
+        int maxRounds = Game.readConfig("config.txt");
         Game game = new Game(map, agents, maxRounds);
+        System.out.println("Starting SFWRENG 2AA4 Catan Simulator");
+        System.out.println("Agent 0 id the Human Player. Use 'roll', 'build', and 'go' commands.");
+        
         game.run();
     }
 }
