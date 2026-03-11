@@ -268,7 +268,7 @@ public class Agent {
      * Gets a random resource from the hand
      * @return a resource from the hand
      */
-    private Resources getRandomResource(){
+    public Resources getRandomResource(){
         if(handSize() == 0){
             return null
         }

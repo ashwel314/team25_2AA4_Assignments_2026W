@@ -30,6 +30,7 @@ public class Game {
     private int      round;
     private int      maxRounds;
     private MultiDice dice;
+    private Robber robber;
 
     // ---------------------------------------------------------------
     // Constructor
@@ -46,6 +47,7 @@ public class Game {
         this.agents    = agents;
         this.round     = 0;
         this.maxRounds = Math.min(maxRounds, MAX_ROUNDS);
+        this.robber = new Robber(map.getAllTiles[16]) // Robber always starts on the desert tile
 
         // Compose two 6-sided dice using the composition pattern
         this.dice = new MultiDice();
@@ -89,9 +91,40 @@ public class Game {
             // 1. Roll dice
             int roll = dice.roll();
 
-            // 2. Distribute resources to all agents based on roll
-            map.distributeResources(roll, agents);
+            // seven roll logic
+            if(roll == 7){
+                for(Agent a : agents){
+                    if(a.isSevenCards()){
+                        a.halfHand();
+                    }
+                }
 
+                // new robber location
+                Tile newRobberLocation = map.getAllTiles()[new Random.nextInt(19)];
+                robber.moveRobber(newRobberLocation);
+
+                // getting the victim for who gets a resource taken from them
+                int[] nodesOnRobberTile = map.getNodesForTile(newRobberLocation.getId);
+                List<Agent> potentialVictims = new ArrayList<>();
+
+                for(Agent a : agents){ // checking to see who has a city or settlement on the tiles nodes
+                    for(int node : nodesOnRobberTile){
+                        if(map.isSettlement(a, node) || map.isCity(a, node)){
+                            potentialVictims.add(a);
+                            break;
+                        }
+                    }
+                }
+
+                // only steals resources if players are on the tile
+                if(potentialVictims.size() != 0){
+                    Agent victim = potentialVictims.get(new Random.nextInt(potentialVictims.size()))
+                    robber.stealResource(agent, victim);
+                }
+            } else{
+                // 2. Distribute resources to all agents based on roll
+                map.distributeResources(roll, agents);
+            }
             // 3. Agent takes their action
             String action = agent.takeTurn(map, round);
 
