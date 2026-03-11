@@ -88,7 +88,7 @@ public class GamePlay {
             if (buildAction != null) {
                 action = buildAction;
             } else {
-                discardHalfOfHand(agent);
+                discardDownToSeven(agent);
                 action = "Discarded down to 7 (no valid build)";
             }
         }
@@ -289,6 +289,14 @@ public class GamePlay {
             if (a.getHandSize() > 7) {
                 a.halfHand();
             }
+        }
+    }
+
+    /** When hand > 7 and no build is possible, discard randomly until hand size is 7 (so mix can change over time). */
+    private void discardDownToSeven(Agent agent) {
+        while (agent.getHandSize() > 7) {
+            Resources r = agent.getRandomResourceFromHand();
+            if (r != null) agent.removeResource(r);
         }
     }
 

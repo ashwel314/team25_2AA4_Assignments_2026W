@@ -235,10 +235,8 @@ public class Agent {
      * @param resource the resource type
      * @param amount   how many to remove
      */
-    public void removeResource(Resources resource, int amount) {
-        for (int i = 0; i < amount; i++) {
+    public void removeResource(Resources resource) {
             hand.remove(resource);
-        }
     }
 
     /**
@@ -264,6 +262,29 @@ public class Agent {
      */
     public boolean isSevenCards() {
         return handSize() > 7;
+    }
+
+    /**
+     * Gets a random resource from the hand
+     * @return a resource from the hand
+     */
+    private Resources getRandomResource(){
+        if(handSize() == 0){
+            return null
+        }
+
+        return hand.get(new Random().nextInt(handSize()))
+    }
+
+    /**
+     * Discards the half of the hand when a seven is rolled
+     */
+    public void halfHand(){
+        int discardAmount = handSize() / 2; // number of cards to discard
+
+        for(int i = 0; i < discardAmount; i++){ // removing random resources from the hand
+            removeResource(getRandomResource());
+        }
     }
 
     /**
