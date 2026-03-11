@@ -26,7 +26,9 @@ public class Robber {
         Random rand = new Random();
 
         Resources r = victim.getRandomResource();
-        stealer.addResource(r, 1);
+        if(r != null){
+            stealer.addResource(r, 1);
+        }
     }
 
     /**
