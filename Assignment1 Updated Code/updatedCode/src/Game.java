@@ -1,6 +1,9 @@
 import java.io.FileReader;
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 
 /**
  * Top-level game controller for the Catan simulator.
@@ -30,6 +33,7 @@ public class Game {
     private int      round;
     private int      maxRounds;
     private MultiDice dice;
+    private Robber robber;
 
     // ---------------------------------------------------------------
     // Constructor
@@ -46,6 +50,7 @@ public class Game {
         this.agents    = agents;
         this.round     = 0;
         this.maxRounds = Math.min(maxRounds, MAX_ROUNDS);
+        this.robber = new Robber(map.getAllTiles()[16]); // Robber always starts on the desert tile
 
         // Compose two 6-sided dice using the composition pattern
         this.dice = new MultiDice();
@@ -85,13 +90,45 @@ public class Game {
      */
     public void runRound() {
         round++;
+        Random random = new Random();
         for (Agent agent : agents) {
             // 1. Roll dice
             int roll = dice.roll();
 
-            // 2. Distribute resources to all agents based on roll
-            map.distributeResources(roll, agents);
+            // seven roll logic
+            if(roll == 7){
+                for(Agent a : agents){
+                    if(a.isSevenCards()){
+                        a.halfHand();
+                    }
+                }
 
+                // new robber location
+                Tile newRobberLocation = map.getAllTiles()[random.nextInt(19)];
+                robber.moveRobber(newRobberLocation);
+
+                // getting the victim for who gets a resource taken from them
+                int[] nodesOnRobberTile = map.getNodesForTile(newRobberLocation.getId());
+                List<Agent> potentialVictims = new ArrayList<>();
+
+                for(Agent a : agents){ // checking to see who has a city or settlement on the tiles nodes
+                    for(int node : nodesOnRobberTile){
+                        if(map.isSettlement(a, node) || map.isCity(a, node)){
+                            potentialVictims.add(a);
+                            break;
+                        }
+                    }
+                }
+
+                // only steals resources if players are on the tile
+                if(!(potentialVictims.isEmpty())){
+                    Agent victim = potentialVictims.get(random.nextInt(potentialVictims.size()));
+                    robber.stealResource(agent, victim);
+                }
+            } else{
+                // 2. Distribute resources to all agents based on roll
+                distributeResources(roll);
+            }
             // 3. Agent takes their action
             String action = agent.takeTurn(map, round);
 
@@ -102,6 +139,45 @@ public class Game {
         // Print VP summary once at end of round (R1.7)
         printVictoryPoints();
     }
+
+    // ---------------------------------------------------------------
+    // Resource distribution
+    // ---------------------------------------------------------------
+
+    /**
+     * Distributes resources to all agents whose buildings are on tiles
+     * matching the given dice roll value (R1.3).
+     *
+     * Rule: Each settlement adjacent to an activated tile earns 1 of that resource.
+     *       Each city adjacent to an activated tile earns 2 of that resource.
+     *       Roll of 7 produces no resources (robber rule, simplified per spec).
+     *
+     * @param diceRoll the result of the two-dice roll
+     */
+    private void distributeResources(int diceRoll) {
+        if (diceRoll == 7) return; // No resources on 7 (simplified robber rule)
+
+        for (Tile tile : map.getAllTiles()) {
+            if (tile.getNumberToken() != diceRoll) continue;
+            if (tile.getResourceType() == Resources.DESERT) continue;
+            if (robber.blockResource(tile)){
+                continue;
+            }
+
+            Resources res = tile.getResourceType();
+            int tileId = tile.getId();
+
+            for (int nodeId : map.getNodesForTile(tileId)) {
+                Node node = map.getNode(nodeId);
+                if (!node.isOccupied()) continue;
+
+                Building b = node.getBuilding();
+                int amount = (b instanceof City) ? 2 : 1;
+                b.getAgent().addResource(res, amount);
+            }
+        }
+    }
+
 
     /**
      * Returns true if the game should terminate (R1.4, R1.5):
