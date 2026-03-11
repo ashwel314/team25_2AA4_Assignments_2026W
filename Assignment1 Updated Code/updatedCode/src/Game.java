@@ -154,7 +154,7 @@ public class Game {
      *
      * @param diceRoll the result of the two-dice roll
      */
-    public void distributeResources(int diceRoll) {
+    private void distributeResources(int diceRoll) {
         if (diceRoll == 7) return; // No resources on 7 (simplified robber rule)
 
         for (Tile tile : map.getAllTiles()) {
