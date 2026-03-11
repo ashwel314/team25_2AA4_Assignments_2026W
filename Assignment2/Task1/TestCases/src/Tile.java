@@ -45,15 +45,6 @@ public class Tile {
         return numToken;
     }
 
-    /**
-     * Returns this tile's unique ID.
-     * @param parameter unused, retained for UML compatibility
-     * @return tile ID
-     */
-    public int getId(int parameter) {
-        return id;
-    }
-
     /** Returns this tile's unique ID. */
     public int getId() {
         return id;

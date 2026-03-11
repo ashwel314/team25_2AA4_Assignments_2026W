@@ -49,8 +49,8 @@ public class Agent {
     /** Total victory points. */
     private int totalPoints;
 
-    /** Resource hand: list of resource cards (each element is a Resources enum value). */
-    private ArrayList<Resources> hand;
+    /** Resource hand: maps each resource type to the count held. */
+    private Map<Resources, Integer> resources;
 
     /** Roads remaining to be placed (max 15 per standard rules). */
     private int roadsRemaining;
@@ -80,7 +80,10 @@ public class Agent {
         this.settlementsRemaining = 5;
         this.citiesRemaining    = 4;
         this.random             = new Random();
-        this.hand = new ArrayList<>();
+        this.resources          = new HashMap<>();
+        for (Resources r : Resources.values()) {
+            if (r != Resources.DESERT) resources.put(r, 0);
+        }
     }
 
     // ---------------------------------------------------------------
@@ -225,9 +228,7 @@ public class Agent {
      */
     public void addResource(Resources resource, int amount) {
         if (resource == Resources.DESERT) return;
-        for (int i = 0; i < amount; i++) {
-            hand.add(resource);
-        }
+        resources.merge(resource, amount, Integer::sum);
     }
 
     /**
@@ -236,9 +237,7 @@ public class Agent {
      * @param amount   how many to remove
      */
     public void removeResource(Resources resource, int amount) {
-        for (int i = 0; i < amount; i++) {
-            hand.remove(resource);
-        }
+        resources.merge(resource, -amount, Integer::sum);
     }
 
     /**
@@ -256,7 +255,7 @@ public class Agent {
      * @return hand size
      */
     public int handSize() {
-        return hand.size();
+        return resources.values().stream().mapToInt(Integer::intValue).sum();
     }
 
     /**
@@ -287,17 +286,9 @@ public class Agent {
         return canAfford(CITY_COST);
     }
 
-    private int countInHand(Resources resource) {
-        int count = 0;
-        for (Resources r : hand) {
-            if (r == resource) count++;
-        }
-        return count;
-    }
-
     private boolean canAfford(Map<Resources, Integer> cost) {
         for (Map.Entry<Resources, Integer> entry : cost.entrySet()) {
-            if (countInHand(entry.getKey()) < entry.getValue()) return false;
+            if (resources.getOrDefault(entry.getKey(), 0) < entry.getValue()) return false;
         }
         return true;
     }
@@ -315,18 +306,14 @@ public class Agent {
     // Accessors
     // ---------------------------------------------------------------
 
-    public int getId() { return id; }
+    public int getId()          { return id; }
     public int getTotalPoints() { return totalPoints; }
     public int getRoadsRemaining()       { return roadsRemaining; }
     public int getSettlementsRemaining() { return settlementsRemaining; }
     public int getCitiesRemaining()      { return citiesRemaining; }
 
     public Map<Resources, Integer> getResourceMap() {
-        Map<Resources, Integer> map = new HashMap<>();
-        for (Resources r : Resources.values()) {
-            if (r != Resources.DESERT) map.put(r, countInHand(r));
-        }
-        return map;
+        return resources;
     }
 
     @Override
