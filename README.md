@@ -50,9 +50,9 @@ The system has been extended to meet the following new requirements:
 ---
 
 ## How to Run
-1. Ensure all `.java` files are located within the `Assignment1` package directory.
+1. Ensure all `.java` files are located within the `Assignment2` package directory.
 2. Compile the project:
    ```bash
-   javac Assignment1/*.java
+   javac Assignment2/*.java
    
 [![SonarQube Cloud](https://sonarcloud.io/images/project_badges/sonarcloud-light.svg)](https://sonarcloud.io/summary/new_code?id=sharmaankita3387_team25_2AA4_Assignments_2026W) 
