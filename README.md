@@ -49,10 +49,23 @@ The system has been extended to meet the following new requirements:
 * **State Export**: After every action, the system exports a `game_state.json` file to sync with the external Python visualizer.
 ---
 
-## How to Run
-1. Ensure all `.java` files are located within the `Assignment2` package directory.
-2. Compile the project:
-   ```bash
-   javac Assignment2/*.java
-   
+## How to Run the Simulator
+
+### 1. Clone the Repository
+git clone https://github.com/sharmaankita3387/team25_2AA4_Assignments_2026W.git
+
+###2. Open the Project
+Open the project using an IDE such as IntelliJ IDEA or Eclipse.
+
+###3. Run the Program
+Locate the directory:
+Assignment2/Task3/src
+
+Open Demonstrator.java.
+Click Run Demonstrator.main().
+
+###4. Simulator Execution
+Running the Demonstrator class will start the simulator and display the game in the terminal.
+You can interact with the game through command line prompts.
+
 [![SonarQube Cloud](https://sonarcloud.io/images/project_badges/sonarcloud-light.svg)](https://sonarcloud.io/summary/new_code?id=sharmaankita3387_team25_2AA4_Assignments_2026W) 
