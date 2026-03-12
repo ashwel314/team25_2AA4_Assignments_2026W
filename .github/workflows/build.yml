@@ -23,10 +23,10 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      - name: Compile Java Source
+      - name: Compile Java Source (exclude tests)
         run: |
           New-Item -ItemType Directory -Force -Path Assignment2\Task3\out\production\Task3
-          javac -d Assignment2\Task3\out\production\Task3 (Get-ChildItem -Recurse -Filter *.java Assignment2\Task3\src).FullName
+          javac -d Assignment2\Task3\out\production\Task3 (Get-ChildItem -Recurse -Filter *.java Assignment2\Task3\src | Where-Object { $_.Name -notlike "*Test.java" }).FullName
 
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v6
