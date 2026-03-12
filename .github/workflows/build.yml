@@ -9,26 +9,48 @@ on:
 
 jobs:
   sonarqube:
-    name: SonarQube
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Set up JDK 17
+      - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
 
-      - name: Compile Java Source (exclude tests)
+      - name: Download JUnit
         run: |
-          New-Item -ItemType Directory -Force -Path Assignment2\Task3\out\production\Task3
-          javac -d Assignment2\Task3\out\production\Task3 (Get-ChildItem -Recurse -Filter *.java Assignment2\Task3\src | Where-Object { $_.Name -notlike "*Test.java" }).FullName
+          mkdir libs
+          curl -L -o libs/junit-4.13.2.jar https://search.maven.org/remotecontent?filepath=junit/junit/4.13.2/junit-4.13.2.jar
+          curl -L -o libs/hamcrest-core-1.3.jar https://search.maven.org/remotecontent?filepath=org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar
 
-      - name: SonarQube Scan
+      - name: Compile Source
+        run: |
+          mkdir -p Assignment2/Task3/out/production/Task3
+          javac -d Assignment2/Task3/out/production/Task3 $(find Assignment2/Task3/src -name "*.java")
+
+      - name: Download JaCoCo
+        run: |
+          curl -L https://repo1.maven.org/maven2/org/jacoco/jacoco/0.8.11/jacoco-0.8.11.zip -o jacoco.zip
+          unzip jacoco.zip
+
+      - name: Run Tests with Coverage
+        run: |
+          mkdir coverage
+          java -javaagent:jacoco/lib/jacocoagent.jar=destfile=jacoco.exec -cp "Assignment2/Task3/out/production/Task3:libs/*" org.junit.runner.JUnitCore CommandParserTest HumanAgentTest RobberTest
+
+      - name: Generate Coverage XML
+        run: |
+          java -jar jacoco/lib/jacococli.jar report jacoco.exec \
+          --classfiles Assignment2/Task3/out/production/Task3 \
+          --sourcefiles Assignment2/Task3/src \
+          --xml coverage/jacoco.xml
+
+      - name: SonarCloud Scan
         uses: SonarSource/sonarqube-scan-action@v6
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
