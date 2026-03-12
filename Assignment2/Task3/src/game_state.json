@@ -1,9 +1,9 @@
 {
   "agents": [
     {"id": 0, "points": 0, "hand_size": 1},
-    {"id": 1, "points": 2, "hand_size": 2},
-    {"id": 2, "points": 2, "hand_size": 0},
-    {"id": 3, "points": 2, "hand_size": 4}
+    {"id": 1, "points": 2, "hand_size": 1},
+    {"id": 2, "points": 2, "hand_size": 1},
+    {"id": 3, "points": 2, "hand_size": 1}
   ],
   "board": {
     "nodes": [
@@ -14,21 +14,21 @@
       {"id": 4, "occupied": false, "type": "none", "owner": -1},
       {"id": 5, "occupied": false, "type": "none", "owner": -1},
       {"id": 6, "occupied": false, "type": "none", "owner": -1},
-      {"id": 7, "occupied": false, "type": "none", "owner": -1},
+      {"id": 7, "occupied": true, "type": "Settlement", "owner": 0},
       {"id": 8, "occupied": false, "type": "none", "owner": -1},
       {"id": 9, "occupied": true, "type": "Settlement", "owner": 0},
       {"id": 10, "occupied": false, "type": "none", "owner": -1},
       {"id": 11, "occupied": false, "type": "none", "owner": -1},
-      {"id": 12, "occupied": true, "type": "Settlement", "owner": 1},
-      {"id": 13, "occupied": false, "type": "none", "owner": -1},
+      {"id": 12, "occupied": false, "type": "none", "owner": -1},
+      {"id": 13, "occupied": true, "type": "Settlement", "owner": 2},
       {"id": 14, "occupied": false, "type": "none", "owner": -1},
-      {"id": 15, "occupied": false, "type": "none", "owner": -1},
+      {"id": 15, "occupied": true, "type": "Settlement", "owner": 3},
       {"id": 16, "occupied": false, "type": "none", "owner": -1},
       {"id": 17, "occupied": false, "type": "none", "owner": -1},
       {"id": 18, "occupied": false, "type": "none", "owner": -1},
       {"id": 19, "occupied": false, "type": "none", "owner": -1},
       {"id": 20, "occupied": false, "type": "none", "owner": -1},
-      {"id": 21, "occupied": true, "type": "Settlement", "owner": 0},
+      {"id": 21, "occupied": true, "type": "Settlement", "owner": 2},
       {"id": 22, "occupied": false, "type": "none", "owner": -1},
       {"id": 23, "occupied": false, "type": "none", "owner": -1},
       {"id": 24, "occupied": false, "type": "none", "owner": -1},
@@ -40,16 +40,16 @@
       {"id": 30, "occupied": false, "type": "none", "owner": -1},
       {"id": 31, "occupied": false, "type": "none", "owner": -1},
       {"id": 32, "occupied": false, "type": "none", "owner": -1},
-      {"id": 33, "occupied": true, "type": "Settlement", "owner": 3},
+      {"id": 33, "occupied": false, "type": "none", "owner": -1},
       {"id": 34, "occupied": false, "type": "none", "owner": -1},
       {"id": 35, "occupied": false, "type": "none", "owner": -1},
-      {"id": 36, "occupied": false, "type": "none", "owner": -1},
+      {"id": 36, "occupied": true, "type": "Settlement", "owner": 1},
       {"id": 37, "occupied": false, "type": "none", "owner": -1},
-      {"id": 38, "occupied": false, "type": "none", "owner": -1},
-      {"id": 39, "occupied": true, "type": "Settlement", "owner": 2},
-      {"id": 40, "occupied": true, "type": "Settlement", "owner": 1},
+      {"id": 38, "occupied": true, "type": "Settlement", "owner": 3},
+      {"id": 39, "occupied": false, "type": "none", "owner": -1},
+      {"id": 40, "occupied": false, "type": "none", "owner": -1},
       {"id": 41, "occupied": false, "type": "none", "owner": -1},
-      {"id": 42, "occupied": true, "type": "Settlement", "owner": 3},
+      {"id": 42, "occupied": false, "type": "none", "owner": -1},
       {"id": 43, "occupied": false, "type": "none", "owner": -1},
       {"id": 44, "occupied": false, "type": "none", "owner": -1},
       {"id": 45, "occupied": false, "type": "none", "owner": -1},
@@ -59,8 +59,8 @@
       {"id": 49, "occupied": false, "type": "none", "owner": -1},
       {"id": 50, "occupied": false, "type": "none", "owner": -1},
       {"id": 51, "occupied": false, "type": "none", "owner": -1},
-      {"id": 52, "occupied": false, "type": "none", "owner": -1},
-      {"id": 53, "occupied": true, "type": "Settlement", "owner": 2}
+      {"id": 52, "occupied": true, "type": "Settlement", "owner": 1},
+      {"id": 53, "occupied": false, "type": "none", "owner": -1}
     ]
   }
 }

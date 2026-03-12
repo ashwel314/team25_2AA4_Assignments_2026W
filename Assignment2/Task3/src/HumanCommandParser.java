@@ -47,36 +47,72 @@ public class HumanCommandParser {
         System.out.println("\n[Human Turn - Agent " + agent.getId() + "]");
         System.out.println("Available commands: 'roll', 'build settlement [id]', 'build road [fromId, toId]', 'list', 'go'");
 
+        // In initial placement, the human is allowed exactly one settlement
+        // and one adjacent road for this setup round.
+        boolean placedSettlement = false;
+        boolean placedRoad = false;
+
         while (!turnOver) {
             System.out.print("Agent " + agent.getId() + " > ");
             String input = scanner.nextLine().trim();
 
             if (input.matches("(?i)^roll$")) {
-                // Dice are rolled by the Game loop; just report what happened.
-                if (lastRoll > 0) {
-                    System.out.println("Dice have already been rolled for this turn: " + lastRoll);
-                    System.out.println("Resources (and any robber effects) have already been applied.");
+                if (isInitialPlacement) {
+                    System.out.println("Dice are not rolled during initial placement.");
                 } else {
-                    System.out.println("Dice are handled automatically by the simulator this turn.");
+                    // Dice are rolled by the Game loop; just report what happened.
+                    if (lastRoll > 0) {
+                        System.out.println("Dice have already been rolled for this turn: " + lastRoll);
+                        System.out.println("Resources (and any robber effects) have already been applied.");
+                    } else {
+                        System.out.println("Dice are handled automatically by the simulator this turn.");
+                    }
                 }
             } else if (input.matches("(?i)^go$")) {
-                turnOver = true;
-                System.out.println("Ending turn...");
+                if (isInitialPlacement && (!placedSettlement || !placedRoad)) {
+                    System.out.println("You must place one settlement and one road before ending this setup turn.");
+                } else {
+                    turnOver = true;
+                    System.out.println("Ending turn...");
+                }
             } else if (input.matches("(?i)^list$")) {
                 System.out.println("Your Resources: " + agent.getResourceMap());
                 System.out.println("Victory Points: " + agent.getTotalPoints());
             } else if (input.matches("(?i)^build\\s+settlement\\s+\\[?(\\d+)\\]?$")) {
-                processBuildSettlement(input, agent, map, isInitialPlacement);
+                if (isInitialPlacement && placedSettlement) {
+                    System.out.println("You have already placed your settlement for this setup turn.");
+                    continue;
+                }
+                boolean success = processBuildSettlement(input, agent, map, isInitialPlacement);
+                if (success && isInitialPlacement) {
+                    placedSettlement = true;
+                }
             } else if (input.matches("(?i)^build\\s+road\\s*\\[\\s*(\\d+)\\s*,\\s*(\\d+)\\s*\\]$")) {
-                processBuildRoad(input, agent, map);
+                if (isInitialPlacement && !placedSettlement) {
+                    System.out.println("Place your settlement first, then place the adjacent road.");
+                    continue;
+                }
+                if (isInitialPlacement && placedRoad) {
+                    System.out.println("You have already placed your road for this setup turn.");
+                    continue;
+                }
+                boolean success = processBuildRoad(input, agent, map);
+                if (success && isInitialPlacement) {
+                    placedRoad = true;
+                    // Once both are placed in setup, end this initial-placement turn automatically.
+                    if (placedSettlement) {
+                        System.out.println("Initial placement for this round is complete.");
+                        turnOver = true;
+                    }
+                }
             } else {
                 System.out.println("Syntax Error: Command not recognized. Use 'build settlement [id]', 'build road [fromId, toId]', 'list', 'roll', or 'go'.");
             }
         }
     }
 
-    private void processBuildSettlement(String input, Agent agent, GameMap map,
-                                        boolean isInitialPlacement) {
+    private boolean processBuildSettlement(String input, Agent agent, GameMap map,
+                                           boolean isInitialPlacement) {
         Pattern p = Pattern.compile("(\\d+)");
         Matcher m = p.matcher(input);
         if (m.find()) {
@@ -84,21 +120,24 @@ public class HumanCommandParser {
 
             if (map.validSettlementNodes(agent, isInitialPlacement).contains(nodeId)) {
                 map.placeSettlement(agent, nodeId);
+                agent.recordSettlementPlaced();
                 System.out.println("Success: Settlement built on node " + nodeId);
+                return true;
             } else {
                 System.out.println("Game Error: Cannot build settlement on node " + nodeId + ". Check resources or distance rule.");
             }
         }
+        return false;
     }
 
-    private void processBuildRoad(String input, Agent agent, GameMap map) {
+    private boolean processBuildRoad(String input, Agent agent, GameMap map) {
         // Expect pattern: build road [fromNodeId, toNodeId]
         // We already validated syntax in handleTurn, but re-parse robustly here.
         Pattern p = Pattern.compile(".*?(\\d+)\\D+(\\d+).*");
         Matcher m = p.matcher(input);
         if (!m.matches()) {
             System.out.println("Game Error: Could not parse node ids. Use 'build road [fromId, toId]'.");
-            return;
+            return false;
         }
         int fromNodeId = Integer.parseInt(m.group(1));
         int toNodeId = Integer.parseInt(m.group(2));
@@ -106,14 +145,17 @@ public class HumanCommandParser {
         int edgeId = map.findEdgeBetweenNodes(fromNodeId, toNodeId);
         if (edgeId == -1) {
             System.out.println("Game Error: No road edge directly connects nodes " + fromNodeId + " and " + toNodeId + ".");
-            return;
+            return false;
         }
 
         if (map.validRoadEdges(agent).contains(edgeId)) {
             map.placeRoad(agent, edgeId);
+            agent.recordRoadPlaced();
             System.out.println("Success: Road built between nodes " + fromNodeId + " and " + toNodeId + " (edge " + edgeId + ")");
+            return true;
         } else {
             System.out.println("Game Error: Illegal road placement between nodes " + fromNodeId + " and " + toNodeId + ".");
+            return false;
         }
     }
 }

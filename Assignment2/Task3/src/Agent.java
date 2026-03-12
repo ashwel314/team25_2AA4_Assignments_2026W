@@ -267,6 +267,17 @@ public abstract class Agent {
         return this instanceof ComputerAgent;
     }
 
+    /** Call when a settlement is placed (e.g. by human via parser) to update VP and piece count. */
+    public void recordSettlementPlaced() {
+        addPoints(1);
+        decrementSettlementsRemaining();
+    }
+
+    /** Call when a road is placed (e.g. by human via parser) to update piece count. */
+    public void recordRoadPlaced() {
+        decrementRoadsRemaining();
+    }
+
     protected void decrementRoadsRemaining() {
         roadsRemaining--;
     }

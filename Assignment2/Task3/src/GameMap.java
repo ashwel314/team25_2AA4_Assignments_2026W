@@ -195,155 +195,127 @@ public class GameMap {
      */
     public void initTiletoNodes() {
         // Tile 0 (center — WOOD, 10): surrounded by inner-band nodes
-        tilesToNodes[0]  = new int[]{10,  0,  1,  2,  3,  4};  // was: wrong; fixed below
+        tilesToNodes[0]  = new int[] {0,  1,  2,  3,  4,5};
 
         // --- Inner ring (tiles 1–6) ---
-        // Tile 1 (WHEAT, 11) — bottom-right inner
-        tilesToNodes[1]  = new int[]{ 0,  1, 19, 20,  3,  4};  // placeholder - see note
+        // Tile 1 (WHEAT, 11) — bottom-right inner; node 7 touches this tile per board image
+        tilesToNodes[1]  = new int[]{1, 2, 6, 7, 8, 9};
         // Tile 2 (BRICK, 8) — bottom inner
-        tilesToNodes[2]  = new int[]{ 3,  4, 20, 21, 22,  5};
+        tilesToNodes[2]  = new int[]{2, 3, 9, 10, 11, 12};
         // Tile 3 (ORE, 3) — bottom-left inner
-        tilesToNodes[3]  = new int[]{ 5, 10,  4,  3, 22, 23};
-        // Tile 4 (SHEEP, 11) — top-left inner
-        tilesToNodes[4]  = new int[]{11, 12,  6,  7, 15, 16};
+        tilesToNodes[3]  = new int[]{ 3, 4, 12, 13, 14, 15};
+        // Tile 4 (SHEEP, 11) — top-left inner; node 7 moved to tiles 1,7,10 per board image
+        tilesToNodes[4]  = new int[]{4, 5, 15, 16, 17, 18};
         // Tile 5 (SHEEP, 5) — top-center inner
-        tilesToNodes[5]  = new int[]{12, 13,  7,  8, 16, 17};
+        tilesToNodes[5]  = new int[]{0, 5, 16, 21, 19, 20};
         // Tile 6 (SHEEP, 12) — top-right inner
-        tilesToNodes[6]  = new int[]{13, 14,  8,  9, 17, 18};
+        tilesToNodes[6]  = new int[]{0, 1, 6, 20, 22, 23};
 
         // --- Outer ring (tiles 7–18) ---
-        // Tile 7  (WHEAT, 3)  bottom outer
-        tilesToNodes[7]  = new int[]{22, 23, 28, 29, 24, 25};
+        // Tile 7  (WHEAT, 3)  bottom outer; node 7 touches this tile per board image
+        tilesToNodes[7]  = new int[]{7, 8, 24, 25, 26, 27};
         // Tile 8  (ORE, 6)    bottom-left outer
-        tilesToNodes[8]  = new int[]{23, 24, 29, 30, 31, 32};
+        tilesToNodes[8]  = new int[]{8, 9, 10, 27, 28, 29};
         // Tile 9  (WOOD, 4)   left outer bottom
-        tilesToNodes[9]  = new int[]{32, 33,  5, 22, 23, 24}; // adjusted
-        // Tile 10 (ORE, 6)    left outer mid
-        tilesToNodes[10] = new int[]{33, 34, 10,  5, 32,  3};
+        tilesToNodes[9]  = new int[]{10, 11, 29, 30, 31, 32};
+        // Tile 10 (ORE, 6)    left outer mid; node 7 touches this tile per board image
+        tilesToNodes[10] = new int[]{11, 12, 13, 32, 33, 34};
         // Tile 11 (WHEAT, 9)  left outer top
-        tilesToNodes[11] = new int[]{34, 35, 15, 10, 33,  6};
+        tilesToNodes[11] = new int[]{13, 14, 34, 35, 36, 37};
         // Tile 12 (WOOD, 5)   top-left outer
-        tilesToNodes[12] = new int[]{35, 36, 40, 41, 37, 11};
+        tilesToNodes[12] = new int[]{14, 15, 17, 37, 38, 39};
         // Tile 13 (BRICK, 9)  top outer left
-        tilesToNodes[13] = new int[]{40, 41, 43, 44, 42, 12};
+        tilesToNodes[13] = new int[]{17, 18, 39, 40, 41, 42};
         // Tile 14 (BRICK, 8)  top outer center
-        tilesToNodes[14] = new int[]{41, 42, 44, 45, 46, 13};
+        tilesToNodes[14] = new int[]{16, 18, 21, 40, 43, 44};
         // Tile 15 (WHEAT, 4)  top outer right
-        tilesToNodes[15] = new int[]{42, 46, 45, 47, 48, 14};
+        tilesToNodes[15] = new int[]{19, 21, 46, 47, 43, 45};
         // Tile 16 (DESERT, 0) right outer top
-        tilesToNodes[16] = new int[]{46, 47, 48, 49,  9, 18};
+        tilesToNodes[16] = new int[]{19, 20, 22, 46, 48, 48};
         // Tile 17 (WOOD, 2)   right outer bottom
-        tilesToNodes[17] = new int[]{ 9, 18, 49, 50,  2, 51};
+        tilesToNodes[17] = new int[]{ 22, 23, 49, 50, 51, 52};
         // Tile 18 (SHEEP, 10) bottom-right outer
-        tilesToNodes[18] = new int[]{ 2, 51,  1, 52, 53, 19};
-
-        /*
-         * ENGINEERING NOTE: The exact tile→node mapping for a hex Catan board
-         * depends on the specific spiral numbering used in the reference implementation.
-         * The mappings above are derived from the assignment PDF node diagram and may
-         * require fine-tuning during integration testing. The structure and counts
-         * (19 tiles × 6 nodes each) are correct.
-         */
+        tilesToNodes[18] = new int[]{ 6, 7, 23, 24, 52, 53};
     }
 
     /**
-     * Maps each edge to its two endpoint node IDs.
-     * 72 edges total — each connects exactly two adjacent nodes.
-     *
-     * Edges are numbered 0–71 by traversing the board systematically:
-     * first all horizontal edges row by row, then all diagonal edges.
+     * Edge-to-node mapping derived from initNodetoNode() so that every edge (a,b)
+     * appears exactly once and matches nodeNeighbors. 72 edges total.
      */
     public void initEdgetoNodes() {
-        // Top outer row horizontal edges (3 nodes → 2 horizontal edges at top)
-        edgeToNodes[0]  = new int[]{43, 44};
-        edgeToNodes[1]  = new int[]{44, 45};
-        // Top-right outer
-        edgeToNodes[2]  = new int[]{45, 47};
-        // Second row horizontals
-        edgeToNodes[3]  = new int[]{40, 41};
-        edgeToNodes[4]  = new int[]{41, 42};
-        edgeToNodes[5]  = new int[]{42, 46};
-        edgeToNodes[6]  = new int[]{46, 47};  // actually 47 connects to next
-        // Verticals connecting row 1 to row 2
-        edgeToNodes[7]  = new int[]{43, 40};
-        edgeToNodes[8]  = new int[]{44, 41};
-        edgeToNodes[9]  = new int[]{45, 42};
-        edgeToNodes[10] = new int[]{47, 48};
-        // Third row
-        edgeToNodes[11] = new int[]{36, 37};
-        edgeToNodes[12] = new int[]{37, 38};
-        edgeToNodes[13] = new int[]{38, 39};
-        edgeToNodes[14] = new int[]{39, 48};
-        edgeToNodes[15] = new int[]{48, 49};
-        // Verticals connecting row 2 to row 3
-        edgeToNodes[16] = new int[]{40, 36};
-        edgeToNodes[17] = new int[]{41, 37};
-        edgeToNodes[18] = new int[]{42, 38};  // was 39
-        edgeToNodes[19] = new int[]{46, 39};
-        edgeToNodes[20] = new int[]{47, 49}; // or 48→49?
-        // 4th row — inner band top
-        edgeToNodes[21] = new int[]{35, 11};
-        edgeToNodes[22] = new int[]{11, 12};
+        // Derived from nodeNeighbors: each edge (a,b) with a < b, ordered by (a,b)
+        edgeToNodes[0]  = new int[]{ 0,  1};
+        edgeToNodes[1]  = new int[]{ 0,  5};
+        edgeToNodes[2]  = new int[]{ 0, 20};
+        edgeToNodes[3]  = new int[]{ 1,  2};
+        edgeToNodes[4]  = new int[]{ 1,  6};
+        edgeToNodes[5]  = new int[]{ 2,  3};
+        edgeToNodes[6]  = new int[]{ 2,  9};
+        edgeToNodes[7]  = new int[]{ 3,  4};
+        edgeToNodes[8]  = new int[]{ 3, 12};
+        edgeToNodes[9]  = new int[]{ 4,  5};
+        edgeToNodes[10] = new int[]{ 4, 15};
+        edgeToNodes[11] = new int[]{ 5, 16};
+        edgeToNodes[12] = new int[]{ 6,  7};
+        edgeToNodes[13] = new int[]{ 6, 23};
+        edgeToNodes[14] = new int[]{ 7,  8};
+        edgeToNodes[15] = new int[]{ 7, 24};
+        edgeToNodes[16] = new int[]{ 8,  9};
+        edgeToNodes[17] = new int[]{ 8, 27};
+        edgeToNodes[18] = new int[]{ 9, 10};
+        edgeToNodes[19] = new int[]{10, 11};
+        edgeToNodes[20] = new int[]{10, 29};
+        edgeToNodes[21] = new int[]{11, 12};
+        edgeToNodes[22] = new int[]{11, 32};
         edgeToNodes[23] = new int[]{12, 13};
         edgeToNodes[24] = new int[]{13, 14};
-        edgeToNodes[25] = new int[]{14, 50};
-        // Verticals row 3 → 4
-        edgeToNodes[26] = new int[]{36, 35};
-        edgeToNodes[27] = new int[]{37, 11};
-        edgeToNodes[28] = new int[]{38, 12};
-        edgeToNodes[29] = new int[]{39, 13};
-        edgeToNodes[30] = new int[]{48, 14};
-        edgeToNodes[31] = new int[]{49, 50};
-        // 5th row
-        edgeToNodes[32] = new int[]{34, 15};
-        edgeToNodes[33] = new int[]{15, 16};
-        edgeToNodes[34] = new int[]{16, 17};
-        edgeToNodes[35] = new int[]{17, 18};
-        edgeToNodes[36] = new int[]{18, 51};
-        // Verticals row 4 → 5
-        edgeToNodes[37] = new int[]{35, 34};
-        edgeToNodes[38] = new int[]{11, 15};
-        edgeToNodes[39] = new int[]{12, 16};
-        edgeToNodes[40] = new int[]{13, 17};
-        edgeToNodes[41] = new int[]{14, 18};
-        edgeToNodes[42] = new int[]{50, 51};
-        // 6th row
-        edgeToNodes[43] = new int[]{33,  6};
-        edgeToNodes[44] = new int[]{ 6,  7};
-        edgeToNodes[45] = new int[]{ 7,  8};
-        edgeToNodes[46] = new int[]{ 8,  9};
-        edgeToNodes[47] = new int[]{ 9, 10};
-        // Verticals row 5 → 6
-        edgeToNodes[48] = new int[]{34, 33};
-        edgeToNodes[49] = new int[]{15,  6};
-        edgeToNodes[50] = new int[]{16,  7};
-        edgeToNodes[51] = new int[]{17,  8};
-        edgeToNodes[52] = new int[]{18,  9};
-        edgeToNodes[53] = new int[]{51, 52};
-        // 7th row (innermost)
-        edgeToNodes[54] = new int[]{32, 10};
-        edgeToNodes[55] = new int[]{10,  0};
-        edgeToNodes[56] = new int[]{ 0,  1};
-        edgeToNodes[57] = new int[]{ 1,  2};
-        edgeToNodes[58] = new int[]{ 2, 53};
-        // Verticals row 6 → 7
-        edgeToNodes[59] = new int[]{33, 32};
-        edgeToNodes[60] = new int[]{ 6, 10};
-        edgeToNodes[61] = new int[]{ 7,  0};
-        edgeToNodes[62] = new int[]{ 8,  1};
-        edgeToNodes[63] = new int[]{ 9,  2};
-        edgeToNodes[64] = new int[]{52, 53};
-        // 8th row
-        edgeToNodes[65] = new int[]{31,  3};
-        edgeToNodes[66] = new int[]{ 3,  4};
-        edgeToNodes[67] = new int[]{ 4,  5};
-        edgeToNodes[68] = new int[]{ 5, 19};
-        // Verticals row 7 → 8
-        edgeToNodes[69] = new int[]{32, 31};
-        edgeToNodes[70] = new int[]{10,  3};
-        edgeToNodes[71] = new int[]{ 0,  4};
-        // Note: remaining edges to 19,20,21,22,23 and bottom outer nodes
-        // (30,28,29,26,27,25) are handled in the node neighbor init below
+        edgeToNodes[25] = new int[]{13, 34};
+        edgeToNodes[26] = new int[]{14, 15};
+        edgeToNodes[27] = new int[]{14, 37};
+        edgeToNodes[28] = new int[]{15, 17};
+        edgeToNodes[29] = new int[]{16, 18};
+        edgeToNodes[30] = new int[]{16, 21};
+        edgeToNodes[31] = new int[]{17, 18};
+        edgeToNodes[32] = new int[]{17, 39};
+        edgeToNodes[33] = new int[]{18, 40};
+        edgeToNodes[34] = new int[]{19, 20};
+        edgeToNodes[35] = new int[]{19, 21};
+        edgeToNodes[36] = new int[]{19, 46};
+        edgeToNodes[37] = new int[]{20, 22};
+        edgeToNodes[38] = new int[]{21, 43};
+        edgeToNodes[39] = new int[]{22, 23};
+        edgeToNodes[40] = new int[]{22, 49};
+        edgeToNodes[41] = new int[]{23, 52};
+        edgeToNodes[42] = new int[]{24, 25};
+        edgeToNodes[43] = new int[]{24, 53};
+        edgeToNodes[44] = new int[]{25, 26};
+        edgeToNodes[45] = new int[]{26, 27};
+        edgeToNodes[46] = new int[]{27, 28};
+        edgeToNodes[47] = new int[]{28, 29};
+        edgeToNodes[48] = new int[]{29, 30};
+        edgeToNodes[49] = new int[]{30, 31};
+        edgeToNodes[50] = new int[]{31, 32};
+        edgeToNodes[51] = new int[]{32, 33};
+        edgeToNodes[52] = new int[]{33, 34};
+        edgeToNodes[53] = new int[]{34, 35};
+        edgeToNodes[54] = new int[]{35, 36};
+        edgeToNodes[55] = new int[]{36, 37};
+        edgeToNodes[56] = new int[]{37, 38};
+        edgeToNodes[57] = new int[]{38, 39};
+        edgeToNodes[58] = new int[]{39, 41};
+        edgeToNodes[59] = new int[]{40, 42};
+        edgeToNodes[60] = new int[]{40, 44};
+        edgeToNodes[61] = new int[]{41, 42};
+        edgeToNodes[62] = new int[]{43, 44};
+        edgeToNodes[63] = new int[]{43, 45};
+        edgeToNodes[64] = new int[]{52, 53};  // (21,43) already at 38
+        edgeToNodes[65] = new int[]{45, 47};
+        edgeToNodes[66] = new int[]{46, 47};
+        edgeToNodes[67] = new int[]{46, 48};
+        edgeToNodes[68] = new int[]{48, 49};
+        edgeToNodes[69] = new int[]{49, 50};
+        edgeToNodes[70] = new int[]{50, 51};
+        edgeToNodes[71] = new int[]{51, 52};
     }
 
     /**
@@ -355,60 +327,60 @@ public class GameMap {
      */
     public void initNodetoNode() {
         // Outer top
-        nodeNeighbors[43] = new int[]{44, 40};
-        nodeNeighbors[44] = new int[]{43, 45, 41};
-        nodeNeighbors[45] = new int[]{44, 47, 42};
-        nodeNeighbors[47] = new int[]{45, 48, 46};
-        nodeNeighbors[46] = new int[]{47, 42, 39};
-        nodeNeighbors[40] = new int[]{43, 41, 36};
-        nodeNeighbors[41] = new int[]{44, 40, 42, 37};
-        nodeNeighbors[42] = new int[]{45, 41, 46, 38};
-        nodeNeighbors[48] = new int[]{47, 49, 39};
-        nodeNeighbors[49] = new int[]{48, 50};
-        nodeNeighbors[36] = new int[]{40, 37, 35};
-        nodeNeighbors[37] = new int[]{41, 36, 38, 11};
-        nodeNeighbors[38] = new int[]{42, 37, 39, 12};
-        nodeNeighbors[39] = new int[]{46, 38, 48, 13};
-        nodeNeighbors[50] = new int[]{49, 51, 14};
-        nodeNeighbors[35] = new int[]{36, 34, 11};  // left outer
-        nodeNeighbors[11] = new int[]{37, 35, 12, 15};
-        nodeNeighbors[12] = new int[]{38, 11, 13, 16};
-        nodeNeighbors[13] = new int[]{39, 12, 14, 17};
-        nodeNeighbors[14] = new int[]{50, 13, 18};
-        nodeNeighbors[51] = new int[]{50, 52, 18};
-        nodeNeighbors[34] = new int[]{35, 33, 15};
-        nodeNeighbors[15] = new int[]{11, 34, 16, 6};
-        nodeNeighbors[16] = new int[]{12, 15, 17, 7};
-        nodeNeighbors[17] = new int[]{13, 16, 18, 8};
-        nodeNeighbors[18] = new int[]{14, 17, 51, 9};
-        nodeNeighbors[52] = new int[]{51, 53};       // 9–52 edge replaced by 9–10 per image
-        nodeNeighbors[33] = new int[]{34, 32, 6};
-        nodeNeighbors[6]  = new int[]{15, 33,  7, 10};
-        nodeNeighbors[7]  = new int[]{16,  6,  8,  0};
-        nodeNeighbors[8]  = new int[]{17,  7,  9,  1};
-        nodeNeighbors[9]  = new int[]{ 2,  8, 10, 18};   // Per image: roads 9-2, 9-8, 9-10; 9-18 via edge 52
-        nodeNeighbors[53] = new int[]{52, 2};
-        nodeNeighbors[32] = new int[]{33, 31, 10};
-        nodeNeighbors[10] = new int[]{ 6, 32,  0,  3,  9};
-        nodeNeighbors[0]  = new int[]{ 7, 10,  1,  4};
-        nodeNeighbors[1]  = new int[]{ 8,  0,  2,  5}; // adjusted
-        nodeNeighbors[2]  = new int[]{ 9,  1, 53, 19}; // adjusted
-        nodeNeighbors[31] = new int[]{32, 30,  3};
-        nodeNeighbors[3]  = new int[]{10, 31,  4, 22};
-        nodeNeighbors[4]  = new int[]{ 0,  3,  5, 20}; // adjusted
-        nodeNeighbors[5]  = new int[]{ 1,  4, 19, 21}; // adjusted — connect to bottom
-        nodeNeighbors[19] = new int[]{ 2,  5, 20};
-        nodeNeighbors[20] = new int[]{ 4, 19, 21};
-        nodeNeighbors[21] = new int[]{ 5, 20, 22};
-        nodeNeighbors[22] = new int[]{ 3, 21, 23};
-        nodeNeighbors[23] = new int[]{22, 24, 28};
-        nodeNeighbors[24] = new int[]{23, 25, 29};
-        nodeNeighbors[25] = new int[]{24, 26};  // bottom-right outer
-        nodeNeighbors[30] = new int[]{31, 28};  // bottom-left outer
-        nodeNeighbors[28] = new int[]{30, 29, 23};
-        nodeNeighbors[29] = new int[]{28, 26, 24};
-        nodeNeighbors[26] = new int[]{29, 27, 25};
-        nodeNeighbors[27] = new int[]{26};       // bottom outer
+        nodeNeighbors[43] = new int[]{44, 45, 21};
+        nodeNeighbors[44] = new int[]{43, 40};
+        nodeNeighbors[45] = new int[]{43, 47};
+        nodeNeighbors[47] = new int[]{45, 46};
+        nodeNeighbors[46] = new int[]{47, 19, 48};
+        nodeNeighbors[40] = new int[]{42, 44, 18};
+        nodeNeighbors[41] = new int[]{42, 39};
+        nodeNeighbors[42] = new int[]{41, 40};
+        nodeNeighbors[48] = new int[]{46, 49};
+        nodeNeighbors[49] = new int[]{48, 22, 50};
+        nodeNeighbors[36] = new int[]{37, 35};
+        nodeNeighbors[37] = new int[]{14, 36, 38};
+        nodeNeighbors[38] = new int[]{37, 39};
+        nodeNeighbors[39] = new int[]{41, 38, 17};
+        nodeNeighbors[50] = new int[]{49, 51};
+        nodeNeighbors[35] = new int[]{36, 34};
+        nodeNeighbors[11] = new int[]{32, 12, 10};
+        nodeNeighbors[12] = new int[]{13, 3, 11};
+        nodeNeighbors[13] = new int[]{34, 12, 14};
+        nodeNeighbors[14] = new int[]{37, 13, 15};
+        nodeNeighbors[51] = new int[]{50, 52};
+        nodeNeighbors[34] = new int[]{35, 33, 13};
+        nodeNeighbors[15] = new int[]{4, 17, 14};  // was 4,15,17 (15 typo)
+        nodeNeighbors[16] = new int[]{21, 18, 5};
+        nodeNeighbors[17] = new int[]{15, 39, 18};
+        nodeNeighbors[18] = new int[]{16, 17, 40};
+        nodeNeighbors[52] = new int[]{51, 53, 23};
+        nodeNeighbors[33] = new int[]{34, 32};
+        nodeNeighbors[6]  = new int[]{1, 7, 23};
+        nodeNeighbors[7]  = new int[]{6, 8, 24};
+        nodeNeighbors[8]  = new int[]{27, 7, 9};
+        nodeNeighbors[9]  = new int[]{ 2,  8, 10};
+        nodeNeighbors[53] = new int[]{52, 24};
+        nodeNeighbors[32] = new int[]{33, 31, 11};
+        nodeNeighbors[10] = new int[]{ 9, 11, 29};
+        nodeNeighbors[0]  = new int[]{ 1, 5, 20};
+        nodeNeighbors[1]  = new int[]{0,  2,  6};
+        nodeNeighbors[2]  = new int[]{ 9,  1, 3};
+        nodeNeighbors[31] = new int[]{32, 30};
+        nodeNeighbors[3]  = new int[]{2, 4, 12};
+        nodeNeighbors[4]  = new int[]{ 3, 5, 15};
+        nodeNeighbors[5]  = new int[]{ 0, 4, 16};
+        nodeNeighbors[19] = new int[]{ 20, 21, 46};
+        nodeNeighbors[20] = new int[]{ 0, 19, 22};
+        nodeNeighbors[21] = new int[]{43, 16, 19};
+        nodeNeighbors[22] = new int[]{ 20, 49, 23 };
+        nodeNeighbors[23] = new int[]{22, 52, 6};
+        nodeNeighbors[24] = new int[]{25, 53, 7};
+        nodeNeighbors[25] = new int[]{24, 26};
+        nodeNeighbors[30] = new int[]{31, 29};
+        nodeNeighbors[28] = new int[]{27, 29};
+        nodeNeighbors[29] = new int[]{28, 10, 20};
+        nodeNeighbors[26] = new int[]{27, 25};
+        nodeNeighbors[27] = new int[]{26, 28, 8};
     }
 
     /**
