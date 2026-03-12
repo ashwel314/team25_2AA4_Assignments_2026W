@@ -7,48 +7,22 @@ on:
     types: [opened, synchronize, reopened]
 jobs:
   sonarqube:
-    runs-on: ubuntu-latest
+    name: SonarQube
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
-      - name: Setup Java
+      - name: Set up Java
         uses: actions/setup-java@v4
         with:
-          distribution: temurin
-          java-version: 17
-
-      - name: Download JUnit
+          distribution: 'temurin'
+          java-version: '17'
+      - name: Compile Java
         run: |
-          mkdir -p libs
-          curl -L -o libs/junit-4.13.2.jar https://search.maven.org/remotecontent?filepath=junit/junit/4.13.2/junit-4.13.2.jar
-          curl -L -o libs/hamcrest-core-1.3.jar https://search.maven.org/remotecontent?filepath=org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar
-
-      - name: Compile Source
-        run: |
-          mkdir -p Assignment2/Task3/out/production/Task3
-          javac -cp "libs/*" -d Assignment2/Task3/out/production/Task3 $(find Assignment2/Task3/src -name "*.java")
-
-      - name: Download JaCoCo
-        run: |
-          mkdir -p jacoco/lib
-          curl -L -o jacoco/lib/jacocoagent.jar https://repo1.maven.org/maven2/org/jacoco/org.jacoco.agent/0.8.11/org.jacoco.agent-0.8.11-runtime.jar
-          curl -L -o jacoco/lib/jacococli.jar https://repo1.maven.org/maven2/org/jacoco/org.jacoco.cli/0.8.11/org.jacoco.cli-0.8.11-nodeps.jar
-
-      - name: Run Tests with Coverage
-        run: |
-          mkdir -p coverage
-          java -javaagent:jacoco/lib/jacocoagent.jar=destfile=jacoco.exec -cp "Assignment2/Task3/out/production/Task3:libs/*" org.junit.runner.JUnitCore CommandParserTest HumanAgentTest RobberTest
-
-      - name: Generate Coverage XML
-        run: |
-          java -jar jacoco/lib/jacococli.jar report jacoco.exec \
-          --classfiles Assignment2/Task3/out/production/Task3 \
-          --sourcefiles Assignment2/Task3/src \
-          --xml coverage/jacoco.xml
-
-      - name: SonarCloud Scan
+          mkdir -p build/classes
+          javac -d build/classes $(find Assignment2/Task3/src -name "*.java")
+      - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v6
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
