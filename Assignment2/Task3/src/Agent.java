@@ -1,7 +1,8 @@
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import java.util.List;
 
 /**
  * Abstract base class for all players (agents) in the Catan simulator.
@@ -42,8 +43,8 @@ public abstract class Agent {
     /** Total victory points. */
     protected int totalPoints;
 
-    /** Resource hand: maps each resource type to the count held. */
-    protected Map<Resources, Integer> resources;
+    /** Resource hand: list of resource cards held (each element is one card). */
+    protected ArrayList<Resources> hand;
 
     /** Roads remaining to be placed (max 15 per standard rules). */
     protected int roadsRemaining;
@@ -73,10 +74,7 @@ public abstract class Agent {
         this.settlementsRemaining = 5;
         this.citiesRemaining    = 4;
         this.random             = new Random();
-        this.resources          = new HashMap<>();
-        for (Resources r : Resources.values()) {
-            if (r != Resources.DESERT) resources.put(r, 0);
-        }
+        this.hand               = new ArrayList<>();
     }
 
     // ---------------------------------------------------------------
@@ -138,7 +136,9 @@ public abstract class Agent {
      */
     public void addResource(Resources resource, int amount) {
         if (resource == Resources.DESERT) return;
-        resources.merge(resource, amount, Integer::sum);
+        for (int i = 0; i < amount; i++) {
+            hand.add(resource);
+        }
     }
 
     /**
@@ -147,9 +147,13 @@ public abstract class Agent {
      * @param amount   how many to remove
      */
     public void removeResource(Resources resource, int amount) {
-        int current = resources.getOrDefault(resource, 0);
-        int next = Math.max(0, current - amount);
-        resources.put(resource, next);
+        int removed = 0;
+        for (int i = hand.size() - 1; i >= 0 && removed < amount; i--) {
+            if (hand.get(i) == resource) {
+                hand.remove(i);
+                removed++;
+            }
+        }
     }
 
     /**
@@ -167,26 +171,15 @@ public abstract class Agent {
      * @return hand size
      */
     public int handSize() {
-        return resources.values().stream().mapToInt(Integer::intValue).sum();
+        return hand.size();
     }
 
     /**
-     * Returns a random resource type from the hand, weighted by counts,
-     * or {@code null} if the hand is empty.
+     * Returns a random resource card from the hand, or {@code null} if the hand is empty.
      */
     public Resources getRandomResource() {
-        int size = handSize();
-        if (size == 0) return null;
-        int pick = random.nextInt(size);
-        for (Map.Entry<Resources, Integer> e : resources.entrySet()) {
-            int count = e.getValue();
-            if (count <= 0) continue;
-            if (pick < count) {
-                return e.getKey();
-            }
-            pick -= count;
-        }
-        return null;
+        if (hand.isEmpty()) return null;
+        return hand.get(random.nextInt(hand.size()));
     }
 
     /**
@@ -202,12 +195,9 @@ public abstract class Agent {
     public void halfHand() {
         int discardAmount = handSize() / 2;
         for (int i = 0; i < discardAmount; i++) {
-            Resources r = getRandomResource();
-            if (r != null) {
-                removeResource(r, 1);
-            } else {
-                break;
-            }
+            if (hand.isEmpty()) break;
+            int idx = random.nextInt(hand.size());
+            hand.remove(idx);
         }
     }
 
@@ -234,7 +224,11 @@ public abstract class Agent {
 
     private boolean canAfford(Map<Resources, Integer> cost) {
         for (Map.Entry<Resources, Integer> entry : cost.entrySet()) {
-            if (resources.getOrDefault(entry.getKey(), 0) < entry.getValue()) return false;
+            int count = 0;
+            for (Resources r : hand) {
+                if (r == entry.getKey()) count++;
+            }
+            if (count < entry.getValue()) return false;
         }
         return true;
     }
@@ -258,8 +252,16 @@ public abstract class Agent {
     public int getSettlementsRemaining() { return settlementsRemaining; }
     public int getCitiesRemaining()      { return citiesRemaining; }
 
+    /** Returns a map of resource type to count for display (e.g. list command). */
     public Map<Resources, Integer> getResourceMap() {
-        return resources;
+        Map<Resources, Integer> map = new HashMap<>();
+        for (Resources r : Resources.values()) {
+            if (r != Resources.DESERT) map.put(r, 0);
+        }
+        for (Resources r : hand) {
+            if (r != Resources.DESERT) map.merge(r, 1, Integer::sum);
+        }
+        return map;
     }
 
     /** Helper used for step-forward logic to distinguish AI from human players. */
