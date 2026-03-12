@@ -54,17 +54,17 @@ The system has been extended to meet the following new requirements:
 ### 1. Clone the Repository
 git clone https://github.com/sharmaankita3387/team25_2AA4_Assignments_2026W.git
 
-###2. Open the Project
+### 2. Open the Project
 Open the project using an IDE such as IntelliJ IDEA or Eclipse.
 
-###3. Run the Program
+### 3. Run the Program
 Locate the directory:
 Assignment2/Task3/src
 
 Open Demonstrator.java.
 Click Run Demonstrator.main().
 
-###4. Simulator Execution
+### 4. Simulator Execution
 Running the Demonstrator class will start the simulator and display the game in the terminal.
 You can interact with the game through command line prompts.
 
