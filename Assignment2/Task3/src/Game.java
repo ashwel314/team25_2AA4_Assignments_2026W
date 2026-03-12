@@ -34,7 +34,6 @@ public class Game {
     private int      round;
     private int      maxRounds;
     private MultiDice dice;
-    private HumanCommandParser humanParser;
     private Robber robber;
 
     // ---------------------------------------------------------------
@@ -52,7 +51,6 @@ public class Game {
         this.agents    = agents;
         this.round     = 0;
         this.maxRounds = Math.min(maxRounds, MAX_ROUNDS);
-        this.humanParser = new HumanCommandParser();
         // Robber starts on the desert tile (id 16 in this layout)
         this.robber = new Robber(map.getAllTiles()[16]);
 
@@ -88,8 +86,7 @@ public class Game {
             String action = agent.initialPlacement(map);
             System.out.println("SETUP / " + agent.getId() + ": " + action);
         } else {
-            // Initial placement: allow human to place without road-connectivity / cost
-            humanParser.handleTurn(agent, map, true, -1);
+            ((HumanAgent) agent).handleInitialPlacement(map);
         }
         GameStateExporter.export(map, agents, "game_state.json");
     }
@@ -151,9 +148,7 @@ public class Game {
                 action = agent.takeTurn(map, round);
                 System.out.println(round + " / " + agent.getId() + ": " + action);
             } else {
-                // Let the human issue build/list/go commands after the simulator
-                // has already rolled and distributed resources for this turn.
-                humanParser.handleTurn(agent, map, false, roll);
+                ((HumanAgent) agent).handleTurn(map, round, roll);
                 action = "Human turn completed.";
             }
 
