@@ -1,45 +1,61 @@
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Map;
 
-/**
- * Exports the current game state to a JSON file for the visualizer (R2.2, R2.3).
- */
 public class GameStateExporter {
+    private static final Map<Integer, String> ID_TO_COLOUR = Map.of(
+            0, "RED",
+            1, "BLUE",
+            2, "WHITE",
+            3, "ORANGE"
+    );
+
+    private static String getColour(int id) {
+        return ID_TO_COLOUR.getOrDefault(id, "UNKNOWN");
+    }
 
     public static void export(GameMap map, Agent[] agents, String filename) {
         StringBuilder json = new StringBuilder("{\n");
 
-        // Agents
-        json.append("  \"agents\": [");
-        for (int i = 0; i < agents.length; i++) {
-            Agent a = agents[i];
-            json.append(String.format(
-                    "\n    {\"id\": %d, \"points\": %d, \"hand_size\": %d}",
-                    a.getId(), a.getTotalPoints(), a.handSize()
-            ));
-            if (i < agents.length - 1) {
-                json.append(",");
+        // ---------------- ROADS ----------------
+        json.append("  \"roads\": [");
+        boolean firstRoad = true;
+        for (int i = 0; i < GameMap.NUM_EDGES; i++) {
+            Edge e = map.getEdge(i);
+            if (e.isOccupied()) {
+                int[] endNodes = map.getNodesForEdge(i);
+                // Prevent duplicates: only emit when a < b
+                if (endNodes[0] < endNodes[1]) {
+                    if (!firstRoad) json.append(",");
+                    json.append(String.format(
+                            "\n    { \"a\": %d, \"b\": %d, \"owner\": \"%s\" }",
+                            endNodes[0],
+                            endNodes[1],
+                            getColour(e.getRoad().getOwner().getId())
+                    ));
+                    firstRoad = false;
+                }
             }
         }
         json.append("\n  ],\n");
 
-        // Board nodes (enough for visualizer to reconstruct state)
-        json.append("  \"board\": {\n");
-        json.append("    \"nodes\": [");
+        // ---------------- BUILDINGS ----------------
+        json.append("  \"buildings\": [");
+        boolean firstBuilding = true;
         for (int i = 0; i < GameMap.NUM_NODES; i++) {
             Node n = map.getNode(i);
-            String buildingType = n.isOccupied() ? n.getBuilding().getClass().getSimpleName() : "none";
-            int ownerId = n.isOccupied() ? n.getBuilding().getAgent().getId() : -1;
-            json.append(String.format(
-                    "\n      {\"id\": %d, \"occupied\": %b, \"type\": \"%s\", \"owner\": %d}",
-                    i, n.isOccupied(), buildingType, ownerId
-            ));
-            if (i < GameMap.NUM_NODES - 1) {
-                json.append(",");
+            if (n.isOccupied()) {
+                if (!firstBuilding) json.append(",");
+                json.append(String.format(
+                        "\n    { \"node\": %d, \"owner\": \"%s\", \"type\": \"%s\" }",
+                        i,
+                        getColour(n.getBuilding().getAgent().getId()),
+                        n.getBuilding().getClass().getSimpleName().toUpperCase()
+                ));
+                firstBuilding = false;
             }
         }
-        json.append("\n    ]\n");
-        json.append("  }\n");
+        json.append("\n  ]\n");
         json.append("}\n");
 
         try (FileWriter writer = new FileWriter(filename)) {
@@ -49,4 +65,3 @@ public class GameStateExporter {
         }
     }
 }
-
