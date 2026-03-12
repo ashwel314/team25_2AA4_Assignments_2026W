@@ -21,12 +21,12 @@ jobs:
         with:
           distribution: temurin
           java-version: 17
-
-      - name: Download JUnit
+          
+      - name: Run Tests with Coverage
         run: |
-          mkdir libs
-          curl -L -o libs/junit-4.13.2.jar https://search.maven.org/remotecontent?filepath=junit/junit/4.13.2/junit-4.13.2.jar
-          curl -L -o libs/hamcrest-core-1.3.jar https://search.maven.org/remotecontent?filepath=org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar
+          mkdir -p coverage
+          java -javaagent:jacoco/lib/jacocoagent.jar=destfile=jacoco.exec -cp "Assignment2/Task3/out/production/Task3:libs/*" org.junit.runner.JUnitCore CommandParserTest HumanAgentTest RobberTest
+
 
       - name: Compile Source
         run: |
