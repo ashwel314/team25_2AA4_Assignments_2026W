@@ -280,6 +280,28 @@ public abstract class Agent {
         decrementRoadsRemaining();
     }
 
+    /** Call when a city is placed (upgrade from settlement) to update piece count and VP. */
+    public void recordCityPlaced() {
+        citiesRemaining--;
+        settlementsRemaining++;
+        addPoints(1);
+    }
+
+    /** Deduct settlement cost from hand (for human build). */
+    protected void payForSettlement() {
+        payResources(SETTLEMENT_COST);
+    }
+
+    /** Deduct road cost from hand (for human build). */
+    protected void payForRoad() {
+        payResources(ROAD_COST);
+    }
+
+    /** Deduct city cost from hand (for human build). */
+    protected void payForCity() {
+        payResources(CITY_COST);
+    }
+
     protected void decrementRoadsRemaining() {
         roadsRemaining--;
     }

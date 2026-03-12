@@ -4,7 +4,7 @@
  * Builds the board, creates one human and three computer agents,
  * and runs a single demonstrative simulation.
  */
-public class Main {
+public class Demonstrator {
 
     public static void main(String[] args) {
 
@@ -16,7 +16,7 @@ public class Main {
         GameMap map = new GameMap();
 
         // --- Create 1 human + 3 computer agents ---
-        HumanCommandParser parser = new HumanCommandParser();
+        CommandParser parser = new CommandParser();
         Agent[] agents = new Agent[]{
                 new HumanAgent(0, 0, parser),
                 new ComputerAgent(1, 0),
