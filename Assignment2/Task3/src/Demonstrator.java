@@ -4,7 +4,7 @@
  * Builds the board, creates one human and three computer agents,
  * and runs a single demonstrative simulation.
  */
-public class Main {
+public class Demonstrator {
 
     public static void main(String[] args) {
 
