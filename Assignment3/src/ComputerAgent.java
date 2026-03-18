@@ -16,36 +16,68 @@ public class ComputerAgent extends Agent {
 
     @Override
     public String takeTurn(GameMap map, int round) {
-        boolean forced = isSevenCards();
+        if (isSevenCards()) {
+            while (isSevenCards()) {
+                List<Command> forced = new ArrayList<>();
 
-        List<String> actions = new ArrayList<>();
-        if (checkRoadCost() && !map.validRoadEdges(this).isEmpty()) {
-            actions.add("road");
-        }
-        if (checkSettlementCost() && !map.validSettlementNodes(this, false).isEmpty()) {
-            actions.add("settlement");
-        }
-        if (checkCityCost() && !map.validCityNodes(this).isEmpty()) {
-            actions.add("city");
+                if (checkCityCost() && !map.validCityNodes(this).isEmpty())
+                    forced.add(new BuildCityCommand(this, map));
+
+                if (checkSettlementCost() && !map.validSettlementNodes(this, false).isEmpty())
+                    forced.add(new BuildSettlementCommand(this, map));
+
+                if (checkRoadCost() && !map.validRoadEdges(this).isEmpty())
+                    forced.add(new BuildRoadCommand(this, map));
+
+                if (forced.isEmpty()) {
+                    // Can't afford anything to reduce hand further
+                    return "Forced: must spend cards but cannot afford anything, hand size: " + handSize();
+                }
+
+                Command best = selectBest(forced);
+                best.execute();
+            }
+            return "Forced: spent cards down to " + handSize() + " (had 7+ cards)";
         }
 
-        if (actions.isEmpty()) {
-            return forced
-                    ? "No build possible despite 7+ cards"
-                    : "No action taken (insufficient resources or no valid placements)";
+        List<Command> available = new ArrayList<>();
+
+        if (checkCityCost() && !map.validCityNodes(this).isEmpty())
+            available.add(new BuildCityCommand(this, map));
+
+        if (checkSettlementCost() && !map.validSettlementNodes(this, false).isEmpty())
+            available.add(new BuildSettlementCommand(this, map));
+
+        if (checkRoadCost() && !map.validRoadEdges(this).isEmpty())
+            available.add(new BuildRoadCommand(this, map));
+
+        if (handSize() > 5)
+            available.add(new SpendCardsCommand(this));
+
+        if (available.isEmpty())
+            return "No action taken (insufficient resources or no valid placements)";
+
+        Command best = selectBest(available);
+        best.execute();
+        return best.getDescription();
+    }
+
+    /**
+     * Selects the highest value command from the list.
+     * Breaks ties randomly as required by R3.2.
+     */
+    private Command selectBest(List<Command> commands) {
+        double maxValue = 0;
+        for (Command c : commands) {
+            if (c.getValue() > maxValue) maxValue = c.getValue();
         }
 
-        String chosen = actions.get(random.nextInt(actions.size()));
-        switch (chosen) {
-            case "road":
-                return buildRoad(map) ? "Built a road" : "Road build failed";
-            case "settlement":
-                return buildSettlement(map) ? "Built a settlement" : "Settlement build failed";
-            case "city":
-                return buildCity(map) ? "Built a city" : "City build failed";
-            default:
-                return "No action taken";
+        List<Command> tied = new ArrayList<>();
+        for (Command c : commands) {
+            if (c.getValue() == maxValue) tied.add(c);
         }
+
+        return tied.get(random.nextInt(tied.size()));
     }
 
     @Override
