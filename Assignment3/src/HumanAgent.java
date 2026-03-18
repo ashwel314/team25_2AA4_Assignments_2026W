@@ -47,7 +47,7 @@ public class HumanAgent extends Agent {
                         int nodeId = parser.getNodeId();
                         cmdManager.executeCommand(new BuildSettlementCommand(this, map, nodeId));
                     }
-                break;
+                    break;
                 case BUILD_ROAD:
                     if (roadsRemaining > 0 && (hasRolledThisTurn || round == 0)) {
                         int from = parser.getFromNodeId();
