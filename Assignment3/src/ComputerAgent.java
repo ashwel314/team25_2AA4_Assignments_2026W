@@ -2,10 +2,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-/**
- * AI-controlled agent that implements the original random-build logic.
- * This class is effectively the old concrete {@code Agent} from Task 3.
- */
 public class ComputerAgent extends Agent {
 
     private final Random random = new Random();
@@ -16,42 +12,34 @@ public class ComputerAgent extends Agent {
 
     @Override
     public String takeTurn(GameMap map, int round) {
-
-        // ---------------------------------------------------------------
-        // PRIORITY CONSTRAINT 1 (R3.3): Resource Management
-        // Force a build action if holding more than 7 cards.
-        // ---------------------------------------------------------------
         if (isSevenCards()) {
-            List<String> actions = new ArrayList<>();
-            if (checkRoadCost() && !map.validRoadEdges(this).isEmpty()) {
-                actions.add("road");
-            }
-            if (checkSettlementCost() && !map.validSettlementNodes(this, false).isEmpty()) {
-                actions.add("settlement");
-            }
-            if (checkCityCost() && !map.validCityNodes(this).isEmpty()) {
-                actions.add("city");
-            }
+            while (isSevenCards()) {
+                List<Command> forced = new ArrayList<>();
 
-            if (actions.isEmpty()) {
-                return "7+ cards but no build possible";
-            }
+                if (checkCityCost() && !map.validCityNodes(this).isEmpty())
+                    forced.add(new BuildCityCommand(this, map));
 
-            String chosen = actions.get(random.nextInt(actions.size()));
-            switch (chosen) {
-                case "road":       return buildRoad(map)       ? "Forced road (7+ cards)"       : "Forced road failed";
-                case "settlement": return buildSettlement(map) ? "Forced settlement (7+ cards)" : "Forced settlement failed";
-                case "city":       return buildCity(map)       ? "Forced city (7+ cards)"       : "Forced city failed";
-                default:           return "No action taken";
+                if (checkSettlementCost() && !map.validSettlementNodes(this, false).isEmpty())
+                    forced.add(new BuildSettlementCommand(this, map));
+
+                if (checkRoadCost() && !map.validRoadEdges(this).isEmpty())
+                    forced.add(new BuildRoadCommand(this, map));
+
+                if (forced.isEmpty()) {
+                    // Can't afford anything to reduce hand further
+                    return "Forced: must spend cards but cannot afford anything, hand size: " + handSize();
+                }
+
+                Command best = selectBest(forced);
+                best.execute();
             }
+            return "Forced: spent cards down to " + handSize() + " (had 7+ cards)";
         }
 
-        // ---------------------------------------------------------------
-        // PRIORITY CONSTRAINT 2 (R3.3): Spatial Logic
-        // If two of this agent's road segments are < 2 edges apart (i.e.
-        // separated by exactly one unoccupied edge), build a connecting road
+       
+        // If two of this agent's road segments are < 2 edges apart (ex. separated by exactly one unoccupied edge), build a connecting road
         // to join them and extend the longest road.
-        // ---------------------------------------------------------------
+       
         if (checkRoadCost()) {
             int connectingEdge = findConnectingRoadEdge(map);
             if (connectingEdge != -1) {
@@ -62,11 +50,9 @@ public class ComputerAgent extends Agent {
             }
         }
 
-        // ---------------------------------------------------------------
-        // PRIORITY CONSTRAINT 3 (R3.3): Competitive Logic
-        // If any opponent is within 1 road segment of matching or beating
-        // this agent's longest road, build defensively to extend our lead.
-        // ---------------------------------------------------------------
+        
+        // If any opponent is within 1 road segment of matching or beating this agent's longest road, build defensively to extend our lead.
+       
         if (checkRoadCost()) {
             int myLongest = map.longestRoadForAgent(this);
             boolean threatened = isThreatenedByOpponent(map, myLongest);
@@ -82,21 +68,52 @@ public class ComputerAgent extends Agent {
                 }
             }
         }
+      
+        List<Command> available = new ArrayList<>();
 
-        // ---------------------------------------------------------------
-        // DEFAULT: No priority constraint triggered — do nothing this turn.
-        // (Member 2's value-based logic would slot in here.)
-        // ---------------------------------------------------------------
-        return "No constraint triggered — no action taken";
+        if (checkCityCost() && !map.validCityNodes(this).isEmpty())
+            available.add(new BuildCityCommand(this, map));
+
+        if (checkSettlementCost() && !map.validSettlementNodes(this, false).isEmpty())
+            available.add(new BuildSettlementCommand(this, map));
+
+        if (checkRoadCost() && !map.validRoadEdges(this).isEmpty())
+            available.add(new BuildRoadCommand(this, map));
+
+        if (handSize() > 5)
+            available.add(new SpendCardsCommand(this));
+
+        if (available.isEmpty())
+            return "No action taken (insufficient resources or no valid placements)";
+
+        Command best = selectBest(available);
+        best.execute();
+        return best.getDescription();
+    }
+  
+  /**
+     * Selects the highest value command from the list.
+     * Breaks ties randomly as required by R3.2.
+     */
+    private Command selectBest(List<Command> commands) {
+        double maxValue = 0;
+        for (Command c : commands) {
+            if (c.getValue() > maxValue) maxValue = c.getValue();
+        }
+
+        List<Command> tied = new ArrayList<>();
+        for (Command c : commands) {
+            if (c.getValue() == maxValue) tied.add(c);
+        }
+
+        return tied.get(random.nextInt(tied.size()));
     }
 
-    // ---------------------------------------------------------------
-// Helper: Spatial Logic (Constraint 2)
+    
 // Finds an unoccupied edge that would connect two separate clusters
-// of this agent's roads that are exactly 1 edge apart.
-// "< 2 units away" means the gap between the two nearest endpoints
+// of this agent's roads that are exactly 1 edge apart. "< 2 units away" means the gap between the two nearest endpoints
 // of the two clusters is bridgeable by a single road.
-// ---------------------------------------------------------------
+
     private int findConnectingRoadEdge(GameMap map) {
         // Collect all edge-endpoint nodes that are "dangling" — on this
         // agent's road network but not internal (i.e. they touch < 2 of
@@ -136,10 +153,8 @@ public class ComputerAgent extends Agent {
         return -1; // No connecting gap found
     }
 
-    // ---------------------------------------------------------------
-// Helper: BFS/flood-fill to check whether two nodes are already
-// in the same road-connected component for this agent.
-// ---------------------------------------------------------------
+// BFS/flood-fill to check whether two nodes are already in the same road-connected component for this agent.
+
     private boolean sameRoadComponent(GameMap map, int startNode, int targetNode) {
         if (startNode == targetNode) return true;
         boolean[] visited = new boolean[GameMap.NUM_NODES];
@@ -163,12 +178,10 @@ public class ComputerAgent extends Agent {
         }
         return false;
     }
-
-    // ---------------------------------------------------------------
-// Helper: Competitive Logic (Constraint 3)
+  
 // Returns true if any opponent's longest road is within 1 segment
 // of this agent's longest road length.
-// ---------------------------------------------------------------
+
     private boolean isThreatenedByOpponent(GameMap map, int myLongest) {
         // Walk every edge looking for roads owned by other agents
         for (int e = 0; e < GameMap.NUM_EDGES; e++) {
@@ -184,11 +197,10 @@ public class ComputerAgent extends Agent {
         return false;
     }
 
-    // ---------------------------------------------------------------
-// Helper: Competitive Logic (Constraint 3)
+    
 // From the list of valid edges, picks the one whose placement
 // results in the greatest increase to this agent's longest road.
-// ---------------------------------------------------------------
+  
     private int getBestExtensionEdge(GameMap map, List<Integer> validEdges) {
         int bestEdge = validEdges.get(0);
         int bestLength = -1;

@@ -20,6 +20,21 @@ public class BuildSettlementCommand implements Command{
         this.cost.put(Resources.SHEEP, 1);
         this.cost.put(Resources.WHEAT, 1);
     }
+  
+    public BuildSettlementCommand(Agent agent, GameMap map) {
+        this.agent = agent;
+        this.map = map;
+    }
+
+    @Override
+    public double getValue() {
+        return 1.0;
+    }
+
+    @Override
+    public String getDescription() {
+        return "Built a Settlement";
+    }
 
     @Override
     public void execute() {

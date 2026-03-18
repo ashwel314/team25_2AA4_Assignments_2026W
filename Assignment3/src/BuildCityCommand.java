@@ -16,6 +16,10 @@ public class BuildCityCommand implements Command {
         this.cost.put(Resources.WHEAT, 2);
         this.cost.put(Resources.ORE, 3);
     }
+  
+    public BuildCityCommand(Agent agent, GameMap map) {
+        this.agent = agent;
+        this.map = map;
 
     @Override
     public void execute() {
@@ -24,6 +28,16 @@ public class BuildCityCommand implements Command {
         }
         map.placeCity(agent, nodeId);
         agent.recordCityPlaced(); 
+    }
+   
+    @Override
+    public double getValue() {
+        return 1.0;
+    }
+
+    @Override
+    public String getDescription() {
+        return "Built a city";
     }
 
     @Override

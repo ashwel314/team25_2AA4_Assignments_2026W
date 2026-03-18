@@ -18,6 +18,21 @@ public class BuildRoadCommand implements Command{
         this.cost.put(Resources.BRICK, 1);
         this.cost.put(Resources.WOOD, 1);
     }
+  
+    public BuildRoadCommand(Agent agent, GameMap map) {
+        this.agent = agent;
+        this.map = map;
+    }
+
+    @Override
+    public double getValue() {
+        return 0.8;
+    }
+
+    @Override
+    public String getDescription() {
+        return "Built a road";
+    }
 
     @Override
     public void execute(){
