@@ -5,8 +5,8 @@ public class BuildRoadCommand implements Command{
     
     private final Agent agent;
     private final GameMap map;
-    private final int edgeId;
-    private final Map<Resources, Integer> cost;
+    private int edgeId;
+    private Map<Resources, Integer> cost;
 
     public BuildRoadCommand(Agent agent, GameMap map, int edgeId){
         this.agent = agent;

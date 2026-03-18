@@ -5,8 +5,8 @@ public class BuildSettlementCommand implements Command{
     
     private final Agent agent;
     private final GameMap map;
-    private final int nodeId;
-    private final Map<Resources, Integer> cost;
+    private int nodeId;
+    private Map<Resources, Integer> cost;
 
     public BuildSettlementCommand(Agent agent, GameMap map, int nodeId){
         this.agent = agent;

@@ -287,6 +287,14 @@ public abstract class Agent {
         addPoints(1);
     }
 
+    public List<Resources> getHand() {
+        return hand;
+    }
+
+    public Random getRandom() {
+        return random;
+    }
+
     /** Deduct settlement cost from hand (for human build). */
     protected void payForSettlement() {
         payResources(SETTLEMENT_COST);

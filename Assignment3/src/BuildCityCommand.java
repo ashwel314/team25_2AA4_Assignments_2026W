@@ -5,8 +5,8 @@ public class BuildCityCommand implements Command {
     
     private final Agent agent;
     private final GameMap map;
-    private final int nodeId;
-    private final Map<Resources, Integer> cost;
+    private int nodeId;
+    private Map<Resources, Integer> cost;
 
     public BuildCityCommand(Agent agent, GameMap map, int nodeId) {
         this.agent = agent;
@@ -16,10 +16,11 @@ public class BuildCityCommand implements Command {
         this.cost.put(Resources.WHEAT, 2);
         this.cost.put(Resources.ORE, 3);
     }
-  
+
     public BuildCityCommand(Agent agent, GameMap map) {
         this.agent = agent;
         this.map = map;
+    }
 
     @Override
     public void execute() {
