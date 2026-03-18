@@ -44,6 +44,16 @@ public class CommandParser {
             commandType = CommandType.LIST;
             return commandType;
         }
+        
+        /*Addition for Assignment 3*/
+        if (Pattern.compile("^undo$", Pattern.CASE_INSENSITIVE).matcher(input).matches()) {
+            commandType = CommandType.UNDO;
+            return commandType; 
+        }
+        if (Pattern.compile("^redo$", Pattern.CASE_INSENSITIVE).matcher(input).matches()) {
+            commandType = CommandType.REDO;
+            return commandType;
+        }
 
         // build settlement <id> or build settlement [id]
         Matcher settlementMatcher = Pattern.compile("^build\\s+settlement\\s+\\[?(\\d+)\\]?$", Pattern.CASE_INSENSITIVE).matcher(input);
