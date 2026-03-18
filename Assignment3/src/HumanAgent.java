@@ -21,67 +21,51 @@ public class HumanAgent extends Agent {
     /**
      * Main-phase turn loop: read commands until GO. Dice roll already applied by Game.
      */
-    public void handleTurn(GameMap map, int round, int diceRoll) {
+    public void handleTurn(GameMap map, int round, int diceRoll, CommandManager cmdManager) {
         Scanner scanner = new Scanner(System.in);
         boolean hasRolledThisTurn = false;
 
         System.out.println("\n[Human Turn - Agent " + id + "]");
-        System.out.println("Commands: roll, list, build settlement [id], build road [from, to], build city [id], go");
+        System.out.println("Commands: roll, list, build settlement [id], build road [from, to], undo, redo, go");
 
         while (true) {
             System.out.print("Agent " + id + " > ");
             String input = scanner.nextLine();
             CommandType type = parser.parser(input);
 
-            if (type == CommandType.ROLL) {
-                if (hasRolledThisTurn) {
-                    System.out.println("Dice have already been rolled for this turn.");
-                } else {
-                    System.out.println("Rolled: " + diceRoll + " for this turn.");
+            switch (type) {
+                case UNDO:
+                    cmdManager.undo();
+                    System.out.println("Action undone.");
+                    break;
+                case REDO:
+                    cmdManager.redo();
+                    System.out.println("Action redone.");
+                    break;
+                case BUILD_SETTLEMENT:
+                    if (settlementsRemaining > 0 && (hasRolledThisTurn || round == 0)) {
+                        int nodeId = parser.getNodeId();
+                        cmdManager.executeCommand(new BuildSettlementCommand(this, map, nodeId));
+                    }
+                    break;
+                case BUILD_ROAD:
+                    if (roadsRemaining > 0 && (hasRolledThisTurn || round == 0)) {
+                        int from = parser.getFromNodeId();
+                        int to = parser.getToNodeId();
+                        int edgeId = map.findEdgeBetweenNodes(from, to);
+                        cmdManager.executeCommand(new BuildRoadCommand(this, map, edgeId));
+                    }
+                    break;
+                case GO:
+                    if (hasRolledThisTurn) return;
+                    System.out.println("Roll first!");
+                    break;
+                case ROLL:
                     hasRolledThisTurn = true;
-                }
-            } else if (type == CommandType.LIST) {
-                System.out.println("Your hand: " + getResourceMap());
-                System.out.println("Victory Points: " + getTotalPoints());
-            } else if (type == CommandType.GO) {
-                if (!hasRolledThisTurn) {
-                    System.out.println("You must roll first (roll is already applied — type 'roll' to acknowledge).");
-                    continue;
-                }
-                System.out.println("Ending turn...");
-                return;
-            } else if (type == CommandType.BUILD_SETTLEMENT) {
-                if (!hasRolledThisTurn) {
-                    System.out.println("You must roll first.");
-                    continue;
-                }
-                if (tryBuildSettlement(map, false)) {
-                    System.out.println("Successfully built settlement on node " + parser.getNodeId());
-                } else {
-                    System.out.println("Failed to build settlement on node " + parser.getNodeId());
-                }
-            } else if (type == CommandType.BUILD_CITY) {
-                if (!hasRolledThisTurn) {
-                    System.out.println("You must roll first.");
-                    continue;
-                }
-                if (tryBuildCity(map)) {
-                    System.out.println("Successfully built city on node " + parser.getNodeId());
-                } else {
-                    System.out.println("Failed to build city on node " + parser.getNodeId());
-                }
-            } else if (type == CommandType.BUILD_ROAD) {
-                if (!hasRolledThisTurn) {
-                    System.out.println("You must roll first.");
-                    continue;
-                }
-                if (tryBuildRoad(map, false)) {
-                    System.out.println("Successfully built road from node " + parser.getFromNodeId() + " to " + parser.getToNodeId());
-                } else {
-                    System.out.println("Failed to build road from node " + parser.getFromNodeId() + " to " + parser.getToNodeId());
-                }
-            } else if (type == CommandType.INVALID) {
-                System.out.println("Invalid command.");
+                    System.out.println("Rolled: " + diceRoll);
+                    break;
+                default:
+                    System.out.println("Invalid command.");
             }
         }
     }

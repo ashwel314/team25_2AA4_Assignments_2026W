@@ -658,4 +658,59 @@ public class GameMap {
         }
         return valid;
     }
+
+    public int longestRoadForAgent(Agent agent) {
+        // Try starting DFS from every edge the agent owns, track global max
+        int maxLength = 0;
+
+        for (int startEdge = 0; startEdge < NUM_EDGES; startEdge++) {
+            if (!edges[startEdge].isOccupied()) continue;
+            if (edges[startEdge].getRoad().getOwner() != agent) continue;
+
+            // Try starting from both endpoints of this edge
+            for (int startNode : edgeToNodes[startEdge]) {
+                boolean[] visitedEdges = new boolean[NUM_EDGES];
+                visitedEdges[startEdge] = true;
+                int length = 1 + dfsRoad(agent, startNode, visitedEdges);
+                maxLength = Math.max(maxLength, length);
+            }
+        }
+
+        return maxLength;
+    }
+
+    /**
+     * DFS helper: from the given node, explores all continuing road edges
+     * (not yet visited) and returns the longest extension found.
+     *
+     */
+    private int dfsRoad(Agent agent, int nodeId, boolean[] visitedEdges) {
+        // If an opponent's building sits on this node, the road is broken —
+        // we arrived here (the incoming edge counted) but cannot continue.
+        Node node = nodes[nodeId];
+        if (node.isOccupied() && node.getBuilding().getAgent() != agent) {
+            return 0;
+        }
+
+        int best = 0;
+
+        for (int edgeId : getEdgesForNode(nodeId)) {
+            if (visitedEdges[edgeId]) continue;
+            if (!edges[edgeId].isOccupied()) continue;
+            if (edges[edgeId].getRoad().getOwner() != agent) continue;
+
+            // Find the node on the other end of this edge
+            int[] endNodes = edgeToNodes[edgeId];
+            int nextNode = (endNodes[0] == nodeId) ? endNodes[1] : endNodes[0];
+
+            visitedEdges[edgeId] = true;
+            int length = 1 + dfsRoad(agent, nextNode, visitedEdges);
+            best = Math.max(best, length);
+            visitedEdges[edgeId] = false; // backtrack
+        }
+
+        return best;
+    }
+
+
 }
