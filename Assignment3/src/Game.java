@@ -35,6 +35,7 @@ public class Game {
     private int      maxRounds;
     private MultiDice dice;
     private Robber robber;
+    private CommandManager commandManager;
 
     // ---------------------------------------------------------------
     // Constructor
@@ -51,6 +52,7 @@ public class Game {
         this.agents    = agents;
         this.round     = 0;
         this.maxRounds = Math.min(maxRounds, MAX_ROUNDS);
+        this.commandManager = new CommandManager();
         // Robber starts on the desert tile (id 16 in this layout)
         this.robber = new Robber(map.getAllTiles()[16]);
 
@@ -148,7 +150,7 @@ public class Game {
                 action = agent.takeTurn(map, round);
                 System.out.println(round + " / " + agent.getId() + ": " + action);
             } else {
-                ((HumanAgent) agent).handleTurn(map, round, roll);
+                ((HumanAgent) agent).handleTurn(map, round, roll, this.commandManager);
                 action = "Human turn completed.";
             }
 
