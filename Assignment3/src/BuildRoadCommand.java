@@ -5,8 +5,8 @@ public class BuildRoadCommand implements Command{
     
     private final Agent agent;
     private final GameMap map;
-    private final int edgeId;
-    private final Map<Resources, Integer> cost;
+    private int edgeId;
+    private Map<Resources, Integer> cost;
 
     public BuildRoadCommand(Agent agent, GameMap map, int edgeId){
         this.agent = agent;
@@ -17,6 +17,21 @@ public class BuildRoadCommand implements Command{
         this.cost = new HashMap<>();
         this.cost.put(Resources.BRICK, 1);
         this.cost.put(Resources.WOOD, 1);
+    }
+  
+    public BuildRoadCommand(Agent agent, GameMap map) {
+        this.agent = agent;
+        this.map = map;
+    }
+
+    @Override
+    public double getValue() {
+        return 0.8;
+    }
+
+    @Override
+    public String getDescription() {
+        return "Built a road";
     }
 
     @Override
