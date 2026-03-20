@@ -1,6 +1,8 @@
 # Catan Simulation Engine: Phase 3
 **team25_2AA4_Assignments-2026W** 
-**Course:** SFWRENG 2AA4 
+
+**Course:** SFWRENG 2AA4
+
 **Project:** Assignment 3 - Design Patterns & Machine Intelligence
 
 ## Project Overview
