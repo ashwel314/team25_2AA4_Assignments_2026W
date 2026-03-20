@@ -59,7 +59,7 @@ Open the project using an IDE such as IntelliJ IDEA or Eclipse.
 
 ### 3. Run the Program
 Locate the directory:
-Assignment2/Task3/src
+Assignment3/src
 
 Open Demonstrator.java.
 Click Run Demonstrator.main().
