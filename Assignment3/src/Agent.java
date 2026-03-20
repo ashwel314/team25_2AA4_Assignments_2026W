@@ -13,9 +13,6 @@ import java.util.Random;
  */
 public abstract class Agent {
 
-    // ---------------------------------------------------------------
-    // Constants — building costs
-    // ---------------------------------------------------------------
     private static final Map<Resources, Integer> ROAD_COST       = new HashMap<>();
     private static final Map<Resources, Integer> SETTLEMENT_COST = new HashMap<>();
     private static final Map<Resources, Integer> CITY_COST       = new HashMap<>();
@@ -33,9 +30,6 @@ public abstract class Agent {
         CITY_COST.put(Resources.ORE,   3);
     }
 
-    // ---------------------------------------------------------------
-    // Fields
-    // ---------------------------------------------------------------
 
     /** Unique agent ID. */
     protected int id;
@@ -58,9 +52,6 @@ public abstract class Agent {
     /** Shared random number generator for random behaviour. */
     protected Random random;
 
-    // ---------------------------------------------------------------
-    // Constructor
-    // ---------------------------------------------------------------
 
     /**
      * Constructor for Agent.
@@ -76,10 +67,6 @@ public abstract class Agent {
         this.random             = new Random();
         this.hand               = new ArrayList<>();
     }
-
-    // ---------------------------------------------------------------
-    // Building helpers used by concrete agents
-    // ---------------------------------------------------------------
 
     /** Attempts to place a road at a randomly chosen valid edge. */
     protected boolean buildRoad(GameMap map) {
@@ -116,18 +103,6 @@ public abstract class Agent {
         addPoints(1); // city gives +1 (net, since settlement already gave 1)
         return true;
     }
-
-    // ---------------------------------------------------------------
-    // Abstract turn and setup API
-    // ---------------------------------------------------------------
-
-    public abstract String takeTurn(GameMap map, int round);
-
-    public abstract String initialPlacement(GameMap map);
-
-    // ---------------------------------------------------------------
-    // Resource management
-    // ---------------------------------------------------------------
 
     /**
      * Adds the given amount of a resource to this agent's hand.
@@ -233,18 +208,12 @@ public abstract class Agent {
         return true;
     }
 
-    // ---------------------------------------------------------------
-    // Points
-    // ---------------------------------------------------------------
 
     /** Adds victory points to this agent's total. */
     public void addPoints(int points) {
         this.totalPoints += points;
     }
 
-    // ---------------------------------------------------------------
-    // Accessors
-    // ---------------------------------------------------------------
 
     public int getId()          { return id; }
     public int getTotalPoints() { return totalPoints; }
@@ -321,6 +290,9 @@ public abstract class Agent {
     protected void decrementCitiesRemaining() {
         citiesRemaining--;
     }
+
+    public abstract String takeTurn(GameMap map, int round, int diceRoll);
+    public abstract String executeInitialPlacement(GameMap map);
 
     @Override
     public String toString() {

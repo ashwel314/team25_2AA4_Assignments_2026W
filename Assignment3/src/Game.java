@@ -24,7 +24,6 @@ public class Game {
     // ---------------------------------------------------------------
     public static final int WIN_VP       = 10;
     public static final int MAX_ROUNDS   = 8192;
-    public static final int NUM_AGENTS   = 4;
 
     // ---------------------------------------------------------------
     // Fields
@@ -36,10 +35,6 @@ public class Game {
     private MultiDice dice;
     private Robber robber;
     private CommandManager commandManager;
-
-    // ---------------------------------------------------------------
-    // Constructor
-    // ---------------------------------------------------------------
 
     /**
      * Creates a new Game instance.
@@ -62,10 +57,6 @@ public class Game {
         this.dice.addDice(new RegularDice(6));
     }
 
-    // ---------------------------------------------------------------
-    // Game flow
-    // ---------------------------------------------------------------
-
     /**
      * Runs the initial placement phase.
      * Supports both AI and Human placement.
@@ -84,12 +75,8 @@ public class Game {
     }
 
     private void handlePlacement(Agent agent) {
-        if (agent.isComputer()) {
-            String action = agent.initialPlacement(map);
-            System.out.println("SETUP / " + agent.getId() + ": " + action);
-        } else {
-            ((HumanAgent) agent).handleInitialPlacement(map);
-        }
+        String action = agent.executeInitialPlacement(map);
+        System.out.println("SETUP / " + agent.getId() + ": " + action);
         GameStateExporter.export(map, agents, "game_state.json");
     }
 
@@ -103,7 +90,6 @@ public class Game {
         round++;
         Random random = new Random();
         for (Agent agent : agents) {
-            // Step-forward between turns so the human can follow (R2.4)
             if (agent.isComputer()) {
                 System.out.println("\n[PAUSED] Type 'go' to see Agent " + agent.getId() + "'s turn.");
                 waitForGoCommand();
@@ -112,19 +98,13 @@ public class Game {
             int roll = dice.roll();
 
             if (roll == 7) {
-                // Half-hand discard for all players with >7 cards
                 for (Agent a : agents) {
-                    if (a.isSevenCards()) {
-                        a.halfHand();
-                    }
+                    if (a.isSevenCards()) a.halfHand();
                 }
-
-                // Move robber to a random tile
                 Tile[] tiles = map.getAllTiles();
                 Tile newRobberLocation = tiles[random.nextInt(tiles.length)];
                 robber.moveRobber(newRobberLocation);
 
-                // Collect potential victims (players with a city/settlement adjacent)
                 int[] nodesOnRobberTile = map.getNodesForTile(newRobberLocation.getId());
                 List<Agent> potentialVictims = new ArrayList<>();
                 for (Agent a : agents) {
@@ -135,31 +115,22 @@ public class Game {
                         }
                     }
                 }
-
                 if (!potentialVictims.isEmpty()) {
                     Agent victim = potentialVictims.get(random.nextInt(potentialVictims.size()));
                     robber.stealResource(agent, victim);
                 }
             } else {
-                // Distribute resources, respecting the robber block (R2.5)
                 map.distributeResources(roll, agents, robber);
             }
 
-            String action;
-            if (agent.isComputer()) {
-                action = agent.takeTurn(map, round);
-                System.out.println(round + " / " + agent.getId() + ": " + action);
-            } else {
-                ((HumanAgent) agent).handleTurn(map, round, roll, this.commandManager);
-                action = "Human turn completed.";
-            }
+            String action = agent.takeTurn(map, round, roll);
+            System.out.println(round + " / " + agent.getId() + ": " + action);
 
             GameStateExporter.export(map, agents, "game_state.json");
         }
-
-        // Print VP summary once at end of round (R1.7)
         printVictoryPoints();
     }
+
 
     /**
      * Blocks execution until the user types "go" (R2.4).
@@ -226,10 +197,6 @@ public class Game {
                 + " with " + winner.getTotalPoints() + " VP");
     }
 
-    // ---------------------------------------------------------------
-    // Config file reader (R1.4)
-    // ---------------------------------------------------------------
-
     /**
      * Reads the number of turns from the configuration file.
      * Config format: "turns: int [1-8192]"
@@ -251,10 +218,6 @@ public class Game {
         }
         return MAX_ROUNDS;
     }
-
-    // ---------------------------------------------------------------
-    // Accessors
-    // ---------------------------------------------------------------
 
     public int     getRound()     { return round; }
     public GameMap getMap()       { return map; }

@@ -17,8 +17,10 @@ public class Demonstrator {
 
         // --- Create 1 human + 3 computer agents ---
         CommandParser parser = new CommandParser();
+        CommandManager cmdManager = new CommandManager();
+
         Agent[] agents = new Agent[]{
-                new HumanAgent(0, 0, parser),
+                new HumanAgent(0, 0, parser, cmdManager),
                 new ComputerAgent(1, 0),
                 new ComputerAgent(2, 0),
                 new ComputerAgent(3, 0)

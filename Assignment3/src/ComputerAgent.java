@@ -11,7 +11,9 @@ public class ComputerAgent extends Agent {
     }
 
     @Override
-    public String takeTurn(GameMap map, int round) {
+    public String takeTurn(GameMap map, int round, int diceRoll) {
+        // exact same body as your existing takeTurn(GameMap map, int round)
+        // diceRoll is unused but satisfies the contract
         if (isSevenCards()) {
             while (isSevenCards()) {
                 List<Command> forced = new ArrayList<>();
@@ -25,10 +27,8 @@ public class ComputerAgent extends Agent {
                 if (checkRoadCost() && !map.validRoadEdges(this).isEmpty())
                     forced.add(new BuildRoadCommand(this, map));
 
-                if (forced.isEmpty()) {
-                    // Can't afford anything to reduce hand further
+                if (forced.isEmpty())
                     return "Forced: must spend cards but cannot afford anything, hand size: " + handSize();
-                }
 
                 Command best = selectBest(forced);
                 best.execute();
@@ -36,10 +36,6 @@ public class ComputerAgent extends Agent {
             return "Forced: spent cards down to " + handSize() + " (had 7+ cards)";
         }
 
-       
-        // If two of this agent's road segments are < 2 edges apart (ex. separated by exactly one unoccupied edge), build a connecting road
-        // to join them and extend the longest road.
-       
         if (checkRoadCost()) {
             int connectingEdge = findConnectingRoadEdge(map);
             if (connectingEdge != -1) {
@@ -50,16 +46,12 @@ public class ComputerAgent extends Agent {
             }
         }
 
-        
-        // If any opponent is within 1 road segment of matching or beating this agent's longest road, build defensively to extend our lead.
-       
         if (checkRoadCost()) {
             int myLongest = map.longestRoadForAgent(this);
             boolean threatened = isThreatenedByOpponent(map, myLongest);
             if (threatened) {
                 List<Integer> validEdges = map.validRoadEdges(this);
                 if (!validEdges.isEmpty()) {
-                    // Pick the edge that extends the longest road the most
                     int bestEdge = getBestExtensionEdge(map, validEdges);
                     map.placeRoad(this, bestEdge);
                     decrementRoadsRemaining();
@@ -68,7 +60,7 @@ public class ComputerAgent extends Agent {
                 }
             }
         }
-      
+
         List<Command> available = new ArrayList<>();
 
         if (checkCityCost() && !map.validCityNodes(this).isEmpty())
@@ -89,6 +81,31 @@ public class ComputerAgent extends Agent {
         Command best = selectBest(available);
         best.execute();
         return best.getDescription();
+    }
+
+    @Override
+    public String executeInitialPlacement(GameMap map) {
+        // exact same body as your existing initialPlacement(GameMap map)
+        List<Integer> validNodes = map.validSettlementNodes(this, true);
+        if (validNodes.isEmpty()) return "No valid initial settlement position found";
+
+        int nodeId = validNodes.get(random.nextInt(validNodes.size()));
+        map.placeSettlement(this, nodeId);
+        decrementSettlementsRemaining();
+        addPoints(1);
+
+        List<Integer> adjEdges = new ArrayList<>();
+        for (int e : map.getEdgesForNode(nodeId)) {
+            if (!map.getEdge(e).isOccupied()) adjEdges.add(e);
+        }
+        String roadDesc = "";
+        if (!adjEdges.isEmpty()) {
+            int edgeId = adjEdges.get(random.nextInt(adjEdges.size()));
+            map.placeRoad(this, edgeId);
+            decrementRoadsRemaining();
+            roadDesc = " and road on edge " + edgeId;
+        }
+        return "Placed settlement on node " + nodeId + roadDesc;
     }
   
   /**
@@ -220,28 +237,5 @@ public class ComputerAgent extends Agent {
         return bestEdge;
     }
 
-    @Override
-    public String initialPlacement(GameMap map) {
-        List<Integer> validNodes = map.validSettlementNodes(this, true);
-        if (validNodes.isEmpty()) return "No valid initial settlement position found";
-
-        int nodeId = validNodes.get(random.nextInt(validNodes.size()));
-        map.placeSettlement(this, nodeId);
-        decrementSettlementsRemaining();
-        addPoints(1);
-
-        List<Integer> adjEdges = new ArrayList<>();
-        for (int e : map.getEdgesForNode(nodeId)) {
-            if (!map.getEdge(e).isOccupied()) adjEdges.add(e);
-        }
-        String roadDesc = "";
-        if (!adjEdges.isEmpty()) {
-            int edgeId = adjEdges.get(random.nextInt(adjEdges.size()));
-            map.placeRoad(this, edgeId);
-            decrementRoadsRemaining();
-            roadDesc = " and road on edge " + edgeId;
-        }
-        return "Placed settlement on node " + nodeId + roadDesc;
-    }
 }
 

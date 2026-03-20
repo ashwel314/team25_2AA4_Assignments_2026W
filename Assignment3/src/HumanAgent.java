@@ -6,66 +6,102 @@ import java.util.Scanner;
 public class HumanAgent extends Agent {
 
     private final CommandParser parser;
+    private CommandManager cmdManager;
 
-    public HumanAgent(int id, int points, CommandParser parser) {
+    public HumanAgent(int id, int points, CommandParser parser, CommandManager cmdManager) {
         super(id, points);
         this.parser = parser;
+        this.cmdManager = cmdManager;
     }
 
     @Override
-    public String takeTurn(GameMap map, int round) {
-        // Game calls handleTurn(map, round, roll) instead when it's the human's turn
+    public String takeTurn(GameMap map, int round, int diceRoll) {
+        handleTurn(map, round, diceRoll);
         return "Human turn completed.";
+    }
+
+    @Override
+    public String executeInitialPlacement(GameMap map) {
+        handleInitialPlacement(map);
+        return "Manual setup finished.";
     }
 
     /**
      * Main-phase turn loop: read commands until GO. Dice roll already applied by Game.
      */
-    public void handleTurn(GameMap map, int round, int diceRoll, CommandManager cmdManager) {
+    public void handleTurn(GameMap map, int round, int diceRoll) {
         Scanner scanner = new Scanner(System.in);
         boolean hasRolledThisTurn = false;
 
         System.out.println("\n[Human Turn - Agent " + id + "]");
-        System.out.println("Commands: roll, list, build settlement [id], build road [from, to], undo, redo, go");
+        System.out.println("Commands: roll, list, build settlement [id], build road [from, to], build city [id], undo, redo, go");
 
         while (true) {
             System.out.print("Agent " + id + " > ");
             String input = scanner.nextLine();
             CommandType type = parser.parser(input);
 
-            switch (type) {
-                case UNDO:
-                    cmdManager.undo();
-                    System.out.println("Action undone.");
-                    break;
-                case REDO:
-                    cmdManager.redo();
-                    System.out.println("Action redone.");
-                    break;
-                case BUILD_SETTLEMENT:
-                    if (settlementsRemaining > 0 && (hasRolledThisTurn || round == 0)) {
-                        int nodeId = parser.getNodeId();
-                        cmdManager.executeCommand(new BuildSettlementCommand(this, map, nodeId));
-                    }
-                    break;
-                case BUILD_ROAD:
-                    if (roadsRemaining > 0 && (hasRolledThisTurn || round == 0)) {
-                        int from = parser.getFromNodeId();
-                        int to = parser.getToNodeId();
-                        int edgeId = map.findEdgeBetweenNodes(from, to);
-                        cmdManager.executeCommand(new BuildRoadCommand(this, map, edgeId));
-                    }
-                    break;
-                case GO:
-                    if (hasRolledThisTurn) return;
-                    System.out.println("Roll first!");
-                    break;
-                case ROLL:
+            if (type == CommandType.ROLL) {
+                if (hasRolledThisTurn) {
+                    System.out.println("Dice have already been rolled for this turn.");
+                } else {
                     hasRolledThisTurn = true;
-                    System.out.println("Rolled: " + diceRoll);
-                    break;
-                default:
-                    System.out.println("Invalid command.");
+                    System.out.println("Rolled: " + diceRoll + " for this turn.");
+                }
+
+            } else if (type == CommandType.UNDO) {
+                System.out.println("Action undone.");
+                cmdManager.undo();
+
+            } else if (type == CommandType.REDO) {
+                System.out.println("Action redone.");
+                cmdManager.redo();
+
+            } else if (type == CommandType.LIST) {
+                System.out.println("Your hand: " + getResourceMap());
+                System.out.println("Victory Points: " + getTotalPoints());
+
+            } else if (type == CommandType.GO) {
+                if (!hasRolledThisTurn) {
+                    System.out.println("You must roll first.");
+                    continue;
+                }
+                System.out.println("Ending turn...");
+                return;
+
+            } else if (type == CommandType.BUILD_SETTLEMENT) {
+                if (!hasRolledThisTurn) {
+                    System.out.println("You must roll first.");
+                    continue;
+                }
+                int nodeId = parser.getNodeId();
+                cmdManager.executeCommand(new BuildSettlementCommand(this, map, nodeId));
+                System.out.println("Successfully built settlement on node " + nodeId);
+
+            } else if (type == CommandType.BUILD_CITY) {
+                if (!hasRolledThisTurn) {
+                    System.out.println("You must roll first.");
+                    continue;
+                }
+                if (tryBuildCity(map)) {
+                    System.out.println("Successfully built city on node " + parser.getNodeId());
+                } else {
+                    System.out.println("Failed to build city on node " + parser.getNodeId());
+                }
+
+            } else if (type == CommandType.BUILD_ROAD) {
+                if (!hasRolledThisTurn) {
+                    System.out.println("You must roll first.");
+                    continue;
+                }
+                int from = parser.getFromNodeId();
+                int to = parser.getToNodeId();
+                int edgeId = map.findEdgeBetweenNodes(from, to);
+                cmdManager.executeCommand(new BuildRoadCommand(this, map, edgeId));
+                System.out.println("Successfully built road from node " + from + " to " + to);
+
+            } else {
+                System.out.println("Invalid command.");
             }
         }
     }
@@ -128,12 +164,6 @@ public class HumanAgent extends Agent {
                 System.out.println("Invalid command.");
             }
         }
-    }
-
-    @Override
-    public String initialPlacement(GameMap map) {
-        handleInitialPlacement(map);
-        return "Manual setup finished.";
     }
 
     private boolean tryBuildSettlement(GameMap map, boolean isInitialPlacement) {
