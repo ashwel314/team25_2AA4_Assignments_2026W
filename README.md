@@ -1,4 +1,4 @@
-# Catan Simulation Engine: Phase 2
+# Catan Simulation Engine: Phase 3
 **team25_2AA4_Assignments-2026W** </br>
 **Course:** SFWRENG 2AA4  </br>
 **Project:** Assignment 2 - human-in-the-Loop & Design Evolution </br>
